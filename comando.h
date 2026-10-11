@@ -25,7 +25,7 @@ const int FRANJAS_HORARIAS = 4; // Cantidad de columnas de la matriz de usos (Ma
 void aMinuscula(char* destino, const char* origen);
 
 // --- Mostrar Comandos ---
-void mostrarComandos();
+void mostrarMenu();
 
 // --- Carga de comandos ---
 void cargarComandoAux(Comando& c, int cod, const char* clave, const char* cat, const char* resp, int u);

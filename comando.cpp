@@ -32,16 +32,23 @@ void cargarComandoAux(Comando& c, int cod, const char* clave, const char* cat, c
 }
 
 void generarDatosDePrueba(Comando arreglo[], int& cant) {
-    cant = 5;
+    cant = 10;
     cargarComandoAux(arreglo[0], 105, "hora", "Sistema", "La hora actual es 16:00 hs.", 12);
     cargarComandoAux(arreglo[1], 101, "clima", "Consultas", "El clima esta despejado y templado.", 8);
     cargarComandoAux(arreglo[2], 104, "chiste", "Ocio", "Que hace una abeja en el gimnasio? Zumba.", 25);
     cargarComandoAux(arreglo[3], 102, "ayuda", "Sistema", "Comandos disponibles: hora, clima, chiste, apagar.", 5);
     cargarComandoAux(arreglo[4], 103, "nombre", "Consultas", "Soy AsistenteVirtual v1.0.", 15);
+    cargarComandoAux(arreglo[5], 103, "nombre", "Consultas", "Soy AsistenteVirtual v1.0.", 15);
+    cargarComandoAux(arreglo[6], 103, "nombre", "Consultas", "Soy AsistenteVirtual v1.0.", 15);
+    cargarComandoAux(arreglo[7], 103, "nombre", "Consultas", "Soy AsistenteVirtual v1.0.", 15);
+    cargarComandoAux(arreglo[8], 103, "nombre", "Consultas", "Soy AsistenteVirtual v1.0.", 15);
+    cargarComandoAux(arreglo[9], 103, "nombre", "Consultas", "Soy AsistenteVirtual v1.0.", 15);
+    cargarComandoAux(arreglo[10], 103, "nombre", "Consultas", "Soy AsistenteVirtual v1.0.", 15);
+
     cout << "\n[OK] Datos de prueba cargados en el arreglo.\n";
 }
 
-void mostrarComandos(){
+void mostrarMenu(){
         cout << "\n=============================================\n";
         cout << "   ASISTENTE CONVERSACIONAL SIMULADO (E1)   \n";
         cout << "=============================================\n";

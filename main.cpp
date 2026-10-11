@@ -25,7 +25,7 @@ int main() {
     leerDesdeArchivoBinario(comandos, cantComandos);
 
     int opcion = -1;
-    mostrarComandos();
+    mostrarMenu();
     do {
 
         cin >> opcion;
@@ -145,7 +145,7 @@ int main() {
             cout << "seleccione cualquier opcion u 11 para mostrar de vuelta el menu\n";
             break;
         case 11:
-            mostrarComandos();
+            mostrarMenu();
             break;
         case 0:
             guardarEnArchivoBinario(comandos, cantComandos);
