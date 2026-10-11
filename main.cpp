@@ -25,16 +25,20 @@ int main() {
     leerDesdeArchivoBinario(comandos, cantComandos);
 
     int opcion = -1;
+    mostrarComandos();
     do {
 
+        cin >> opcion;
         cin.ignore();
 
         switch (opcion) {
         case 1:
             generarDatosDePrueba(comandos, cantComandos);
+            cout << "seleccione cualquier opcion u 11 para mostrar de vuelta el menu\n";
             break;
         case 2:
             mostrarComandos(comandos, cantComandos);
+            cout << "seleccione cualquier opcion u 11 para mostrar de vuelta el menu\n";
             break;
         case 3: {
             int cr;
@@ -42,6 +46,7 @@ int main() {
             cin >> cr;
             if (cr == 1) ordenarPorCodigo(comandos, cantComandos);
             else if (cr == 2) ordenarPorPalabra(comandos, cantComandos);
+            cout << "seleccione cualquier opcion u 11 para mostrar de vuelta el menu\n";
             break;
         }
         case 4: {
@@ -51,6 +56,7 @@ int main() {
             int pos = buscarPorCodigoBinaria(comandos, cantComandos, cod);
             if (pos != -1) cout << "ENCONTRADO en pos [" << pos << "]: " << comandos[pos].palabraClave << " -> " << comandos[pos].respuesta << "\n";
             else cout << "Codigo no encontrado.\n";
+            cout << "seleccione cualquier opcion u 11 para mostrar de vuelta el menu\n";
             break;
         }
         case 5: {
@@ -59,7 +65,6 @@ int main() {
             cout << "\nIngrese la hora actual (0 a 23 hs): ";
             cin >> hora;
             cin.ignore();
-
             // Mapeo de hora a columna de la matriz
             int franja = 0;
             if (hora >= 6 && hora < 12)       franja = 0; // Manana
@@ -91,6 +96,7 @@ int main() {
                 cout << "IA responde: Lo siento, no entendi el comando.\n";
                 agregarInteraccionHistorial(historialSesion, contadorIDInteraccion++, frase, "Comando Desconocido");
             }
+            cout << "seleccione cualquier opcion u 11 para mostrar de vuelta el menu\n";
             break;
         }
         case 6:
@@ -111,10 +117,12 @@ int main() {
                 cout << "ID a eliminar: "; cin >> id;
                 eliminarInteraccion(historialSesion, id);
             }
+            cout << "seleccione cualquier opcion u 11 para mostrar de vuelta el menu\n";
             break;
         }
         case 8:
             procesarMatrizUsos(matrizUsos);
+            cout << "seleccione cualquier opcion u 11 para mostrar de vuelta el menu\n";
             break;
         case 9: {
             int nReg;
@@ -126,6 +134,7 @@ int main() {
             cin.getline(nuevaResp, 100);
             modificarRespuestaRegistroN(nReg, nuevaResp);
             leerDesdeArchivoBinario(comandos, cantComandos);
+            cout << "seleccione cualquier opcion u 11 para mostrar de vuelta el menu\n";
             break;
         }
         case 10:
@@ -133,14 +142,19 @@ int main() {
             ordenarPorPalabra(comandos, cantComandos);
             guardarEnArchivoBinario(comandos, cantComandos);
             listadoPorCategoriaConCorte();
+            cout << "seleccione cualquier opcion u 11 para mostrar de vuelta el menu\n";
+            break;
+        case 11:
+            mostrarComandos();
             break;
         case 0:
             guardarEnArchivoBinario(comandos, cantComandos);
             liberarHistorial(historialSesion);
             cout << "Saliendo del programa...\n";
+            cout << "seleccione cualquier opcion u 11 para mostrar de vuelta el menu\n";
             break;
         default:
-            cout << "Opcion invalida.\n";
+            cout << "Opcion invalida, intente otra vez.\n";
         }
     } while (opcion != 0);
 
