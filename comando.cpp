@@ -85,30 +85,41 @@ void mostrarComandos(Comando arreglo[], int cant) {
 // =============================================================
 
 void ordenarPorCodigo(Comando arreglo[], int cant) {
-    for (int i = 0; i < cant - 1; i++) {
+    int i = 0;
+    bool ordenado = false;
+    while(i != cant - 1 && !ordenado) {
+        ordenado = true;
         for (int j = 0; j < cant - i - 1; j++) {
             if (arreglo[j].codigo > arreglo[j + 1].codigo) {
+                ordenado = false;
                 Comando aux = arreglo[j];
                 arreglo[j] = arreglo[j + 1];
                 arreglo[j + 1] = aux;
             }
         }
+        i++;
     }
     cout << "\n[OK] Arreglo ordenado por CODIGO.\n";
 }
 
 void ordenarPorPalabra(Comando arreglo[], int cant) {
-    for (int i = 0; i < cant - 1; i++) {
+    int i = 0;
+    bool ordenado = false;
+    while (i != cant - 1 || not ordenado) {
+        ordenado = true;
         int minIdx = i;
         for (int j = i + 1; j < cant; j++) {
             if (strcmp(arreglo[j].palabraClave, arreglo[minIdx].palabraClave) < 0) {
+                ordenado = false;
                 minIdx = j;
             }
         }
         Comando aux = arreglo[i];
         arreglo[i] = arreglo[minIdx];
         arreglo[minIdx] = aux;
+        i++;
     }
+    ordenado = true;
     cout << "\n[OK] Arreglo ordenado por PALABRA CLAVE.\n";
 }
 
