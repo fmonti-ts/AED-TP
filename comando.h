@@ -40,6 +40,8 @@ void ordenarPorCodigo(Comando arreglo[], int cant);
 
 void ordenarPorPalabra(Comando arreglo[], int cant);
 
+void ordenarPorCategoria(Comando arreglo[], int cant);
+
 // --- Busqueda binaria por codigo (requiere arreglo ordenado por codigo) ---
 int buscarPorCodigoBinaria(Comando arreglo[], int cant, int codigoBuscado);
 

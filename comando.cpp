@@ -122,7 +122,24 @@ void ordenarPorPalabra(Comando arreglo[], int cant) {
     ordenado = true;
     cout << "\n[OK] Arreglo ordenado por PALABRA CLAVE.\n";
 }
-
+void ordenarPorCategoria(Comando arreglo[], int cant) {
+    for (int i = 0; i < cant - 1; i++) {
+        int minIdx = i;
+        for (int j = i + 1; j < cant; j++) {
+            int cmp = strcmp(arreglo[j].categoria, arreglo[minIdx].categoria);
+            if (cmp < 0 ||
+               (cmp == 0 && strcmp(arreglo[j].palabraClave, arreglo[minIdx].palabraClave) < 0)) {
+                minIdx = j;
+            }
+        }
+        if (minIdx != i) {
+            Comando aux = arreglo[i];
+            arreglo[i] = arreglo[minIdx];
+            arreglo[minIdx] = aux;
+        }
+    }
+    cout << "\n[OK] Arreglo ordenado por CATEGORIA.\n";
+}
 // =============================================================
 // Busqueda binaria por codigo
 // =============================================================

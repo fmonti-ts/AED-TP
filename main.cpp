@@ -15,7 +15,7 @@ using namespace std; //Evita tener que escribir std:: antes de cada funcion o cl
 int main() {
     Comando comandos[50];
     int cantComandos = 0;
-    bool ordenadoPorCodigo, ordenadoPorPalabra  = false;  
+    bool ordenadoPorCodigo = false, ordenadoPorPalabra  = false;  
 
     // Matriz inicializada en 0. Mantiene su valor mientras la app este abierta.
     int matrizUsos[CANT_CATEGORIAS][FRANJAS_HORARIAS] = { 0 };
