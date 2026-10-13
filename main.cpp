@@ -15,6 +15,7 @@ using namespace std; //Evita tener que escribir std:: antes de cada funcion o cl
 int main() {
     Comando comandos[50];
     int cantComandos = 0;
+    bool ordenadoPorCodigo = false, ordenadoPorPalabra  = false;  
 
     // Matriz inicializada en 0. Mantiene su valor mientras la app este abierta.
     int matrizUsos[CANT_CATEGORIAS][FRANJAS_HORARIAS] = { 0 };
@@ -32,34 +33,46 @@ int main() {
         cin.ignore();
 
         switch (opcion) {
-        case 1:
+        case 1: //generar datos
             generarDatosDePrueba(comandos, cantComandos);
             cout << "seleccione cualquier opcion u 11 para mostrar de vuelta el menu\n";
             break;
-        case 2:
+        case 2: // mostrar comandos posibles
             mostrarComandos(comandos, cantComandos);
             cout << "seleccione cualquier opcion u 11 para mostrar de vuelta el menu\n";
             break;
-        case 3: {
+        case 3: { // ordenar
             int cr;
             cout << "Elija Criterio (1: Codigo, 2: Palabra): ";
-            cin >> cr;
-            if (cr == 1) ordenarPorCodigo(comandos, cantComandos);
-            else if (cr == 2) ordenarPorPalabra(comandos, cantComandos);
+            do {
+                cin >> cr;
+                if (cr != 1 && cr != 2) cout << "invalido";
+            } while (cr != 1 && cr != 2);
+                if (cr == 1){
+                    ordenarPorCodigo(comandos, cantComandos);
+                    ordenadoPorCodigo = true;
+                    ordenadoPorPalabra = false;
+                } else { 
+                    ordenarPorPalabra(comandos, cantComandos);
+                    ordenadoPorCodigo = false;
+                    ordenadoPorPalabra = true;
+                }
             cout << "seleccione cualquier opcion u 11 para mostrar de vuelta el menu\n";
             break;
         }
-        case 4: {
+        case 4: { // bus (binaria por codigo)
             int cod;
-            cout << "Ingrese Codigo a buscar: ";
-            cin >> cod;
-            int pos = buscarPorCodigoBinaria(comandos, cantComandos, cod);
-            if (pos != -1) cout << "ENCONTRADO en pos [" << pos << "]: " << comandos[pos].palabraClave << " -> " << comandos[pos].respuesta << "\n";
-            else cout << "Codigo no encontrado.\n";
-            cout << "seleccione cualquier opcion u 11 para mostrar de vuelta el menu\n";
+            if(ordenadoPorCodigo == true){
+                cout << "Ingrese Codigo a buscar: ";
+                cin >> cod;
+                int pos = buscarPorCodigoBinaria(comandos, cantComandos, cod);
+                if (pos != -1) cout << "ENCONTRADO en pos [" << pos << "]: " << comandos[pos].palabraClave << " -> " << comandos[pos].respuesta << "\n";
+                else cout << "Codigo no encontrado.\n";
+                cout << "seleccione  opcion u 11 para mostrar de vuelta el menu\n";
+            } else cout << "array de comandos no ordenado, por favor ordene por codigo e intente de nuevo\n";
             break;
         }
-        case 5: {
+        case 5: { // charlar con el bot
             // 1. Pedir la hora antes de procesar el mensaje
             int hora;
             cout << "\nIngrese la hora actual (0 a 23 hs): ";
@@ -71,7 +84,6 @@ int main() {
             else if (hora >= 12 && hora < 19) franja = 1; // Tarde
             else if (hora >= 19 && hora < 24) franja = 2; // Noche
             else                              franja = 3; // Trasnoche (0 a 5 hs)
-
             // 2. Pedir la frase
             char frase[100];
             cout << "Usuario dice: ";
