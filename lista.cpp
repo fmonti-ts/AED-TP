@@ -93,3 +93,4 @@ void liberarHistorial(NodoHistorial*& cabeza) {
     }
     cout << "\nMemoria dinamica del historial liberada correctamente.\n";
 }
+

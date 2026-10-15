@@ -14,22 +14,23 @@ void guardarEnArchivoBinario(Comando arreglo[], int cant) {
     cout << "\n[OK] Archivo 'comandos.dat' generado/actualizado en disco automaticamente.\n";
 }
 
-void leerDesdeArchivoBinario(Comando arreglo[], int& cant) {
+int leerDesdeArchivoBinario(Comando arreglo[], int& cant) {
     ifstream archivo("comandos.dat", ios::binary);
-    if (!archivo) { cout << "No se encontro 'comandos.dat'. Se creara uno al guardar datos.\n"; return; }
+    if (!archivo) { cout << "No se encontro 'comandos.dat'. Se creara uno al guardar datos.\n"; return -1; }
     cant = 0;
     while (archivo.read((char*)(&arreglo[cant]), sizeof(Comando))) {
         cant++;
     }
     archivo.close();
     cout << "\n[OK] " << cant << " comandos cargados desde 'comandos.dat'.\n";
+    return 0;
 }
 
 void modificarRespuestaRegistroN(int nRegistro, const char* nuevaRespuesta) {
     fstream archivo("comandos.dat", ios::in | ios::out | ios::binary);
     if (!archivo) { cout << "Error al abrir comandos.dat\n"; return; }
 
-    archivo.seekp(nRegistro * sizeof(Comando));
+    archivo.seekg(nRegistro * sizeof(Comando));
     Comando reg;
     archivo.read((char*)(&reg), sizeof(Comando));
     strcpy(reg.respuesta, nuevaRespuesta);
@@ -41,22 +42,7 @@ void modificarRespuestaRegistroN(int nRegistro, const char* nuevaRespuesta) {
     cout << "\n[OK] Registro N=" << nRegistro << " modificado con Acceso Aleatorio (seekg/seekp).\n";
 }
 
-void exportarSesionTXT(NodoHistorial* cabeza) {
-    ofstream txt("sesion.txt");
-    if (!txt) { cout << "Error al crear sesion.txt\n"; return; }
-
-    txt << "=== LOG DE SESION DE IA CONVERSACIONAL ===\n";
-    NodoHistorial* aux = cabeza;
-    while (aux != NULL) {
-        txt << "[ID: " << aux->idInteraccion << "] User: " << aux->mensajeUsuario
-            << " | IA: " << aux->respuestaAsistente << "\n";
-        aux = aux->siguiente;
-    }
-    txt.close();
-    cout << "\n[OK] Archivo 'sesion.txt' generado automaticamente.\n";
-}
-
-void listadoPorCategoriaConCorte() {
+void listadoPorCategoria() {
     ifstream archivo("comandos.dat", ios::binary);
     if (!archivo) { cout << "No existe comandos.dat para procesar el corte de control.\n"; return; }
 
@@ -91,3 +77,17 @@ void listadoPorCategoriaConCorte() {
     archivo.close();
 }
 
+void exportarSesionTXT(NodoHistorial* cabeza) {
+    ofstream txt("sesion.txt");
+    if (!txt) { cout << "Error al crear sesion.txt\n"; return; }
+
+    txt << "=== LOG DE SESION DE IA CONVERSACIONAL ===\n";
+    NodoHistorial* aux = cabeza;
+    while (aux != NULL) {
+        txt << "[ID: " << aux->idInteraccion << "] User: " << aux->mensajeUsuario
+            << " | IA: " << aux->respuestaAsistente << "\n";
+        aux = aux->siguiente;
+    }
+    txt.close();
+    cout << "\n[OK] Archivo 'sesion.txt' generado automaticamente.\n";
+}

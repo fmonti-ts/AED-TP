@@ -16,15 +16,17 @@
 // --- Archivo binario ---
 void guardarEnArchivoBinario(Comando arreglo[], int cant);
 
-void leerDesdeArchivoBinario(Comando arreglo[], int& cant);
+int leerDesdeArchivoBinario(Comando arreglo[], int& cant);
 
 // --- Acceso aleatorio (seekg/seekp) sobre comandos.dat ---
 void modificarRespuestaRegistroN(int nRegistro, const char* nuevaRespuesta);
 
-// --- Archivo de texto: log de sesion ---
 void exportarSesionTXT(NodoHistorial* cabeza);
+                                                                                    
+// --- Archivo de texto: log de sesion ---
+void exportarYListar(Comando comandos[], int cantComandos, NodoHistorial* historial); 
 
 // --- Corte de control por categoria (requiere comandos.dat ordenado por categoria) ---
-void listadoPorCategoriaConCorte();
+void listadoPorCategoria(); //
 
 #endif

@@ -1,6 +1,8 @@
 #ifndef COMANDO_H
 #define COMANDO_H
 
+
+
 // =============================================================
 // MODULO DE DOMINIO: Comando y Matriz de Usos
 // =============================================================
@@ -23,36 +25,37 @@ struct Comando { // Estructura que representa un comando del asistente conversac
 	int usos; //Cantidad de veces que el comando ha sido utilizado
 };
 
-// --- Strings auxiliares ---
-void aMinuscula(char* destino, const char* origen);
+
+void mostrarMenuAdministracion();
+
+
+void consultarPorCodigo(Comando comandos[], int cantComandos);
 
 // --- Carga de comandos ---
-void cargarComandoAux(Comando& c, int cod, const char* clave, const char* cat, const char* resp, const char* desc, int u);
-
-void generarDatosDePrueba(Comando arreglo[], int& cant);
+void cargarComando(Comando& c, int cod, const char* clave, const char* cat, const char* resp, const char* desc, int u);
 
 // --- Recorrido / muestra ---
-void mostrarComandosEnMemoria(Comando arreglo[], int cant);   // Vista completa (todos los campos), para el administrador
 
-void mostrarComandos(Comando arreglo[MAX_COMANDOS], int cantComandos);  // Vista para el usuario: solo codigo y palabra clave (exige orden por codigo)
+void mostrarComandosEnMemoria(Comando arreglo[], int cant);
+
+void mostrarComandosParaUsuario(Comando arreglo[], int cantComandos); // Vista completa (todos los campos), para el administrador
+
+void mostrarOpcionesDeSesion(); 
 
 // --- Ordenamiento (dos criterios + categoria para el corte de control) ---
-bool estaOrdenadoPorCodigo(Comando arreglo[], int cant);
-
-void ordenarPorCodigo(Comando arreglo[], int cant);
 
 void ordenarPorPalabra(Comando arreglo[], int cant);
 
+void ordenarPorCodigo(Comando arreglo[], int cant);
+
 void ordenarPorCategoria(Comando arreglo[], int cant);
 
+bool estaOrdenadoPorCodigo(Comando arreglo[], int cant);
 // --- Busqueda binaria por codigo (requiere arreglo ordenado por codigo) ---
 int buscarPorCodigoBinaria(Comando arreglo[], int cant, int codigoBuscado);
 
 // --- Busqueda por palabra clave (insensible a mayusculas, admite texto parcial): devuelve posicion o -1 ---
 int buscarComando(Comando arreglo[MAX_COMANDOS], int cantComandos, const char* palabraClave);
-
-// --- Busqueda de la clave DENTRO de una frase, insensible a mayusculas (para procesar frases) ---
-int procesarFraseUsuario(Comando arreglo[], int cant, const char* fraseInput);
 
 // --- Mostrar el dato de un comando a partir de su posicion (error si la posicion no es valida) ---
 void mostrarRespuesta(Comando arreglo[MAX_COMANDOS], int cantComandos, int pos);

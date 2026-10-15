@@ -2,28 +2,48 @@
 #include <iostream>
 #include <cstring>
 #include <cctype>
-#include "comando.h"
+#include "comando.h"                                
 
 using namespace std;
-
-// =============================================================
-// Strings auxiliares
-// =============================================================
-
-void aMinuscula(char* destino, const char* origen) {
-    int i = 0;
-    while (origen[i] != '\0') {
-        destino[i] = tolower(origen[i]);
-        i++;
-    }
-    destino[i] = '\0';
-}
 
 // =============================================================
 // Carga de comandos
 // =============================================================
 
-void cargarComandoAux(Comando& c, int cod, const char* clave, const char* cat, const char* resp, const char* desc, int u) {
+void mostrarMenuAdministracion() {
+    cout << "\n=============================================\n";
+    cout << "       MENU DE ADMINISTRACION DE SESION  \n";
+    cout << "=============================================\n";
+    cout << "1. Cargar Datos de Prueba\n";
+    cout << "2. Mostrar Comandos en Memoria\n";
+    cout << "3. Ordenar Arreglo (1: Codigo | 2: Palabra)\n";
+    cout << "4. Buscar Comando por Codigo (Busqueda Binaria)\n";
+    cout << "6. Ver Historial Completo (Lista Enlazada)\n";
+    cout << "7. Buscar / Eliminar en Historial\n";
+    cout << "8. Ver Reporte de Matriz de Usos\n";
+    cout << "9. Modificar Respuesta N en Disco (Acceso Aleatorio)\n";
+    cout << "10. Exportar Sesion a TXT y Corte de Control\n";
+    cout << "0. Salir y Guardar Estado\n";
+    cout << "Opcion: ";
+}
+
+void mostrarOpcionesDeSesion() {
+    cout << "\n--------- SESION CON LA IA ---------\n";
+    cout << "1. Ver comandos disponibles\n";
+    cout << "2. Decirle algo a la IA\n";
+    cout << "3. Preguntar que hace un comando\n";
+    cout << "4. Mostrar opciones devuelta\n";
+    cout << "0. Terminar la conversacion\n";
+    cout << "Opcion: ";
+}
+
+
+
+// =============================================================
+// Carga de comandos
+// =============================================================
+
+void cargarComando(Comando& c, int cod, const char* clave, const char* cat, const char* resp, const char* desc, int u) {
     c.codigo = cod;
     strcpy(c.palabraClave, clave);
     strcpy(c.categoria, cat);
@@ -32,27 +52,10 @@ void cargarComandoAux(Comando& c, int cod, const char* clave, const char* cat, c
     c.usos = u;
 }
 
-void generarDatosDePrueba(Comando arreglo[], int& cant) {
-    // Codigos unicos y desordenados a proposito, para poder probar el ordenamiento.
-    cargarComandoAux(arreglo[0], 105, "hora",      "Sistema",   "La hora actual es 16:00 hs.",                      "Informa la hora actual.",                  12);
-    cargarComandoAux(arreglo[1], 101, "clima",     "Consultas", "El clima esta despejado y templado.",              "Informa el estado del clima.",              8);
-    cargarComandoAux(arreglo[2], 104, "chiste",    "Ocio",      "Que hace una abeja en el gimnasio? Zumba.",        "Cuenta un chiste.",                        25);
-    cargarComandoAux(arreglo[4], 103, "nombre",    "Consultas", "Soy AsistenteVirtual v1.0.",                       "Dice como se llama el asistente.",         15);
-    cargarComandoAux(arreglo[5], 106, "fecha",     "Sistema",   "La fecha de hoy es 10/10/2026.",                   "Informa la fecha actual.",                  7);
-    cargarComandoAux(arreglo[6], 107, "adios",     "Sistema",   "Hasta luego! Fue un gusto charlar.",               "Se despide del usuario.",                   3);
-    cargarComandoAux(arreglo[7], 108, "musica",    "Ocio",      "Te recomiendo escuchar algo de Rock Nacional.",    "Recomienda musica para escuchar.",         10);
-    cargarComandoAux(arreglo[8], 109, "creador",   "Consultas", "Me desarrollo Facundo, Lucas, Juan Oliver y Stefano .",   "Cuenta quien desarrollo el asistente.",     4);
-    cargarComandoAux(arreglo[9], 110, "acertijo",  "Ocio",      "Que tiene ciudades pero no casas? Un mapa.",       "Propone un acertijo para resolver.",        6);
-    cant = 10;
-
-    cout << "\n[OK] Datos de prueba cargados en el arreglo.\n";
-}
-
 // =============================================================    
 // Recorrido / muestra
 // =============================================================
 
-// Vista completa (todos los campos). Sirve para ver el estado interno del arreglo.
 void mostrarComandosEnMemoria(Comando arreglo[], int cant) {
     cout << "\n=== LISTADO DE COMANDOS EN MEMORIA ===\n";
     for (int i = 0; i < cant; i++) {
@@ -63,9 +66,7 @@ void mostrarComandosEnMemoria(Comando arreglo[], int cant) {
     }
 }
 
-// Vista para el usuario: que palabras clave puede decirle a la IA.
-// Solo funciona si el arreglo esta ordenado por codigo.
-void mostrarComandos(Comando arreglo[MAX_COMANDOS], int cantComandos) {
+void mostrarComandosParaUsuario(Comando arreglo[], int cantComandos) {
     if (cantComandos == 0) {
         cout << "\n[!] No hay comandos cargados.\n";
         return;
@@ -84,14 +85,7 @@ void mostrarComandos(Comando arreglo[MAX_COMANDOS], int cantComandos) {
 // Ordenamiento (dos criterios)
 // =============================================================
 
-bool estaOrdenadoPorCodigo(Comando arreglo[], int cant) {
-    for (int i = 0; i < cant - 1; i++) {
-        if (arreglo[i].codigo > arreglo[i + 1].codigo) return false;
-    }
-    return true;
-}
 
-// Burbuja con corte anticipado
 void ordenarPorCodigo(Comando arreglo[], int cant) {
     int i = 0;
     bool ordenado = false;
@@ -110,7 +104,6 @@ void ordenarPorCodigo(Comando arreglo[], int cant) {
     cout << "\n[OK] Arreglo ordenado por CODIGO.\n";
 }
 
-// Seleccion
 void ordenarPorPalabra(Comando arreglo[], int cant) {
     for (int i = 0; i < cant - 1; i++) {
         int minIdx = i;
@@ -128,7 +121,6 @@ void ordenarPorPalabra(Comando arreglo[], int cant) {
     cout << "\n[OK] Arreglo ordenado por PALABRA CLAVE.\n";
 }
 
-// Seleccion por categoria (y por palabra dentro de cada categoria). La usa el corte de control.
 void ordenarPorCategoria(Comando arreglo[], int cant) {
     for (int i = 0; i < cant - 1; i++) {
         int minIdx = i;
@@ -148,6 +140,13 @@ void ordenarPorCategoria(Comando arreglo[], int cant) {
     cout << "\n[OK] Arreglo ordenado por CATEGORIA.\n";
 }
 
+bool estaOrdenadoPorCodigo(Comando arreglo[], int cant) {
+    for (int i = 0; i < cant - 1; i++) {
+        if (arreglo[i].codigo > arreglo[i + 1].codigo) return false;
+    }
+    return true;
+}
+
 // =============================================================
 // Busquedas
 // =============================================================
@@ -163,16 +162,12 @@ int buscarPorCodigoBinaria(Comando arreglo[], int cant, int codigoBuscado) {
     return -1;
 }
 
-// Busca el texto ingresado DENTRO de la palabra clave: "CLIM" encuentra "clima".
-// Devuelve la posicion del primer comando que coincide, o -1 si no hay ninguno.
-int buscarComando(Comando arreglo[MAX_COMANDOS], int cantComandos, const char* palabraClave) {
+int buscarPorPalabra(Comando arreglo[MAX_COMANDOS], int cantComandos, const char* palabraClave) {
     if (palabraClave[0] == '\0') return -1;   // texto vacio: coincidiria con todo
 
     char buscada[100], claveMin[30];
-    aMinuscula(buscada, palabraClave);
 
     for (int i = 0; i < cantComandos; i++) {
-        aMinuscula(claveMin, arreglo[i].palabraClave);
         if (strstr(claveMin, buscada) != NULL) {
             return i;
         }
@@ -180,24 +175,12 @@ int buscarComando(Comando arreglo[MAX_COMANDOS], int cantComandos, const char* p
     return -1;
 }
 
-// Busca si alguna palabra clave aparece DENTRO de la frase: "decime la HORA" encuentra "hora".
-int procesarFraseUsuario(Comando arreglo[], int cant, const char* fraseInput) {
-    char fraseMin[100], claveMin[30];
-    aMinuscula(fraseMin, fraseInput);
-
-    for (int i = 0; i < cant; i++) {
-        aMinuscula(claveMin, arreglo[i].palabraClave);
-        if (strstr(fraseMin, claveMin) != NULL) {
-            return i;
-        }
-    }
-    return -1;
-}
 
 // =============================================================
 // Mostrar respuesta / descripcion de un comando
 // =============================================================
 
+// Busca si alguna palabra clave aparece DENTRO de la frase: "decime la HORA" encuentra "hora".
 void mostrarRespuesta(Comando arreglo[MAX_COMANDOS], int cantComandos, int pos) {
     if (pos < 0 || pos >= cantComandos) {
         cout << "[ERROR] Lo siento, no entendi el comando: no hay respuesta para mostrar.\n";
