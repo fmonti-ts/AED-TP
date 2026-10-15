@@ -2,7 +2,9 @@
 #include <iostream>
 #include <cstring>
 #include <cctype>
-#include "comando.h"                                
+#include "comando.h"      
+#include <chrono>   // Necesario para las unidades de tiempo (seconds, milliseconds)
+#include <thread>                           
 
 using namespace std;
 
@@ -24,7 +26,6 @@ void mostrarMenuAdministracion() {
     cout << "9. Modificar Respuesta N en Disco (Acceso Aleatorio)\n";
     cout << "10. Exportar Sesion a TXT y Corte de Control\n";
     cout << "0. Salir y Guardar Estado\n";
-    cout << "Opcion: ";
 }
 
 void mostrarOpcionesDeSesion() {
@@ -34,7 +35,6 @@ void mostrarOpcionesDeSesion() {
     cout << "3. Preguntar que hace un comando\n";
     cout << "4. Mostrar opciones devuelta\n";
     cout << "0. Terminar la conversacion\n";
-    cout << "Opcion: ";
 }
 
 
@@ -43,13 +43,14 @@ void mostrarOpcionesDeSesion() {
 // Carga de comandos
 // =============================================================
 
-void cargarComando(Comando& c, int cod, const char* clave, const char* cat, const char* resp, const char* desc, int u) {
+void cargarComando(Comando& c, int cod, const char* clave, const char* cat, const char* resp, const char* desc, int u, int& cant) {
     c.codigo = cod;
     strcpy(c.palabraClave, clave);
     strcpy(c.categoria, cat);
     strcpy(c.respuesta, resp);
     strcpy(c.descripcion, desc);
     c.usos = u;
+    cant++;
 }
 
 // =============================================================    
@@ -72,13 +73,16 @@ void mostrarComandosParaUsuario(Comando arreglo[], int cantComandos) {
         return;
     }
     if (!estaOrdenadoPorCodigo(arreglo, cantComandos)) {
-        cout << "\n[!] Los comandos no estan ordenados por codigo. Ordene por codigo e intente de nuevo.\n";
-        return;
+        cout << "\n[!] Los comandos no estan ordenados por codigo. ordenando...\n";
+        this_thread::sleep_for(std::chrono::milliseconds(500));
+        ordenarPorCodigo(arreglo, cantComandos);
+        cout << "listo! \n ";
     }
     cout << "\n=== COMANDOS DISPONIBLES ===\n";
     for (int i = 0; i < cantComandos; i++) {
         cout << arreglo[i].codigo << " - " << arreglo[i].palabraClave << "\n";
     }
+    cout << "\n converse con la IA y elija alguno de estos comandos\n";
 }
 
 // =============================================================
@@ -162,7 +166,7 @@ int buscarPorCodigoBinaria(Comando arreglo[], int cant, int codigoBuscado) {
     return -1;
 }
 
-int buscarPorPalabra(Comando arreglo[MAX_COMANDOS], int cantComandos, const char* palabraClave) {
+int buscarPorPalabra(Comando arreglo[], int cantComandos, const char* palabraClave) {
     if (palabraClave[0] == '\0') return -1;   // texto vacio: coincidiria con todo
 
     char buscada[100], claveMin[30];
@@ -181,7 +185,7 @@ int buscarPorPalabra(Comando arreglo[MAX_COMANDOS], int cantComandos, const char
 // =============================================================
 
 // Busca si alguna palabra clave aparece DENTRO de la frase: "decime la HORA" encuentra "hora".
-void mostrarRespuesta(Comando arreglo[MAX_COMANDOS], int cantComandos, int pos) {
+void mostrarRespuesta(Comando arreglo[], int cantComandos, int pos) {
     if (pos < 0 || pos >= cantComandos) {
         cout << "[ERROR] Lo siento, no entendi el comando: no hay respuesta para mostrar.\n";
         return;

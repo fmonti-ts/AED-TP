@@ -32,7 +32,7 @@ void mostrarMenuAdministracion();
 void consultarPorCodigo(Comando comandos[], int cantComandos);
 
 // --- Carga de comandos ---
-void cargarComando(Comando& c, int cod, const char* clave, const char* cat, const char* resp, const char* desc, int u);
+void cargarComando(Comando& c, int cod, const char* clave, const char* cat, const char* resp, const char* desc, int u,int& cant);
 
 // --- Recorrido / muestra ---
 
@@ -58,7 +58,7 @@ int buscarPorCodigoBinaria(Comando arreglo[], int cant, int codigoBuscado);
 int buscarComando(Comando arreglo[MAX_COMANDOS], int cantComandos, const char* palabraClave);
 
 // --- Mostrar el dato de un comando a partir de su posicion (error si la posicion no es valida) ---
-void mostrarRespuesta(Comando arreglo[MAX_COMANDOS], int cantComandos, int pos);
+void mostrarRespuesta(Comando arreglo[], int cantComandos, int pos);
 
 void mostrarDescripcion(Comando arreglo[MAX_COMANDOS], int cantComandos, int pos);
 

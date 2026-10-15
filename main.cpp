@@ -18,18 +18,29 @@ using namespace std; //Evita tener que escribir std:: antes de cada funcion o cl
 //  MANEJO DE HISTORIAL
 // --------------------
 
+void esperar(){
+    cout << ".";
+    this_thread::sleep_for(std::chrono::milliseconds(300));
+    cout << ".";
+    this_thread::sleep_for(std::chrono::milliseconds(300));
+    cout << ".\n";
+    this_thread::sleep_for(std::chrono::milliseconds(300));
+    cout << "\n\n\n";
+}
+
 void generarDatosDePrueba(Comando arreglo[], int& cant) {
+    cant = 0;
     // Codigos unicos y desordenados a proposito, para poder probar el ordenamiento.
-    cargarComando(arreglo[0], 105, "hora",      "Sistema",   "La hora actual es 16:00 hs.",                      "Informa la hora actual.",                  12);
-    cargarComando(arreglo[1], 101, "clima",     "Consultas", "El clima esta despejado y templado.",              "Informa el estado del clima.",              8);
-    cargarComando(arreglo[2], 104, "chiste",    "Ocio",      "Que hace una abeja en el gimnasio? Zumba.",        "Cuenta un chiste.",                        25);
-    cargarComando(arreglo[4], 103, "nombre",    "Consultas", "Soy AsistenteVirtual v1.0.",                       "Dice como se llama el asistente.",         15);
-    cargarComando(arreglo[5], 106, "fecha",     "Sistema",   "La fecha de hoy es 10/10/2026.",                   "Informa la fecha actual.",                  7);
-    cargarComando(arreglo[6], 107, "adios",     "Sistema",   "Hasta luego! Fue un gusto charlar.",               "Se despide del usuario.",                   3);
-    cargarComando(arreglo[7], 108, "musica",    "Ocio",      "Te recomiendo escuchar algo de Rock Nacional.",    "Recomienda musica para escuchar.",         10);
-    cargarComando(arreglo[8], 109, "creador",   "Consultas", "Me desarrollo Facundo, Lucas, Juan Oliver y Stefano .",   "Cuenta quien desarrollo el asistente.",     4);
-    cargarComando(arreglo[9], 110, "acertijo",  "Ocio",      "Que tiene ciudades pero no casas? Un mapa.",       "Propone un acertijo para resolver.",        6);
-    cant = 10;
+    cargarComando(arreglo[0], 105, "hora","Sistema","La hora actual es 16:00 hs.","Informa la hora actual.",12,cant);
+    cargarComando(arreglo[1], 101, "clima","Consultas","El clima esta despejado y templado.","Informa el estado del clima.",8,cant);
+    cargarComando(arreglo[2], 104, "chiste","Ocio","Que hace una abeja en el gimnasio? Zumba.","Cuenta un chiste.",25,cant);
+    cargarComando(arreglo[3], 103, "nombre","Consultas","Soy AsistenteVirtual v1.0.","Dice como se llama el asistente.",15,cant);
+    cargarComando(arreglo[4], 106, "fecha","Sistema","La fecha de hoy es 10/10/2026.","Informa la fecha actual.",7,cant);
+    cargarComando(arreglo[5], 107, "adios","Sistema","Hasta luego! Fue un gusto charlar.","Se despide del usuario.",0,cant);
+    cargarComando(arreglo[6], 108, "musica","Ocio","Te recomiendo escuchar algo de Rock Nacional.","Recomienda musica para escuchar",10,cant);
+    cargarComando(arreglo[7], 109, "creador",   "Consultas", "Me desarrollo Facundo, Lucas, Juan Oliver y Stefano .","Cuenta quien desarrollo el asistente.",4,cant);
+    cargarComando(arreglo[8], 110,"acertijo","Ocio","Que tiene ciudades pero no casas? Un mapa.","Propone un acertijo para resolver.",6,cant);
+    cargarComando(arreglo[9], 111, "hola","Sistema","Hola, soy una IA convrsasional.","Saluda al usuario.",30, cant);
 
     cout << "\n[OK] Datos de prueba cargados en el arreglo.\n";
 }
@@ -51,6 +62,12 @@ void gestionarHistorial(NodoHistorial*& historial) {
     }
 }
 
+void menuDeOpciones(){
+    cout << "------ elija una opcion ------- \n ";
+    cout << "oprima 1 para hablar con la IA \n";
+    cout << "oprima 2 para entrar al menu de ajustes \n";
+    cout << "oprima 0 para terminar el programa \n" ;
+};
 
 // -------------------
 //  MANEJO DE ARCHIVOS
@@ -100,22 +117,22 @@ int procesarFraseUsuario(Comando arreglo[], int cant, const char* fraseInput) {
 }
 
 
-void decirleAlgoALaIa(Comando comandos[MAX_COMANDOS], int cantComandos, int matrizUsos[CANT_CATEGORIAS][FRANJAS_HORARIAS], int franja, NodoHistorial*& historial, int& contadorID) {
+void conversarConLaIA(Comando comandos[MAX_COMANDOS], int cantComandos, int matrizUsos[CANT_CATEGORIAS][FRANJAS_HORARIAS], int franja, NodoHistorial*& historial, int& contadorID) {
     char frase[100];
-    cout << "Usuario dice: ";
-    leerLinea(frase, 100);
-
-    int pos = procesarFraseUsuario(comandos, cantComandos, frase);
-    mostrarRespuesta(comandos, cantComandos, pos);   // si pos es -1 muestra el error
-
-    if (pos != -1) {
-        comandos[pos].usos++;
-        matrizUsos[filaDeCategoria(comandos[pos].categoria)][franja]++;
-        agregarInteraccionHistorial(historial, contadorID++, frase, comandos[pos].respuesta);
-    }
-    else {
-        agregarInteraccionHistorial(historial, contadorID++, frase, "Comando invalido");
-    }
+    while ((strcmp(frase, "adios") != 0)){
+        cout << "Usuario dice: ";
+        cin.clear();
+        cin.getline(frase,100);
+        int pos = procesarFraseUsuario(comandos, cantComandos, frase);
+        mostrarRespuesta(comandos, cantComandos, pos);
+        if (pos != -1) {
+            comandos[pos].usos++;
+            matrizUsos[filaDeCategoria(comandos[pos].categoria)][franja]++;
+            agregarInteraccionHistorial(historial, contadorID++, frase, comandos[pos].respuesta);
+        } else {
+            agregarInteraccionHistorial(historial, contadorID++, frase, "Comando invalido");
+        }
+    }    
 }
 
 
@@ -143,7 +160,7 @@ int buscarComando(Comando arreglo[MAX_COMANDOS], int cantComandos, const char* p
 void elegirOrdenamiento(Comando comandos[], int cantComandos) {
     int criterio;
     do {
-        cout << "Elija criterio (1: Codigo, 2: Palabra, 0: Cancelar): ";
+        cout << "Elija criterio (1: Codigo, 2: Palabra, otro: Cancelar): ";
         criterio = leerEntero();
     } while (criterio < 0 || criterio > 2);
 
@@ -179,15 +196,10 @@ void preguntarQueHaceUnComando(Comando comandos[], int cantComandos) {
 // -------------------
 
 
-void conversarConLaIa(Comando comandos[MAX_COMANDOS], int cantComandos, int matrizUsos[CANT_CATEGORIAS][FRANJAS_HORARIAS], NodoHistorial*& historial, int& contadorID) {
+void sesionDeUsuario(Comando comandos[MAX_COMANDOS], int cantComandos, int matrizUsos[CANT_CATEGORIAS][FRANJAS_HORARIAS], NodoHistorial*& historial, int& contadorID) {
     if (cantComandos == 0) {
         cout << "\n[!] No hay comandos cargados. Cargue datos de prueba primero (opcion 2).\n";
-        cout << "ordenando... \n";
-        ordenarPorCodigo(comandos, cantComandos);
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
-        cout << "listo! \n ";
-
+        return;
     }
 
     int franja = franjaDeHora(pedirHora());
@@ -196,14 +208,16 @@ void conversarConLaIa(Comando comandos[MAX_COMANDOS], int cantComandos, int matr
     
     int opcion;
     do {
+        cout << "Opcion: ";
         opcion = leerEntero();
-
         switch (opcion) {
         case 1:
             mostrarComandosParaUsuario(comandos, cantComandos);
             break;
         case 2:
-            decirleAlgoALaIa(comandos, cantComandos, matrizUsos, franja, historial, contadorID);
+            conversarConLaIA(comandos, cantComandos, matrizUsos, franja, historial, contadorID);
+            cout << "\n\n";
+            
             break;
         case 3:
             preguntarQueHaceUnComando(comandos, cantComandos);
@@ -212,20 +226,24 @@ void conversarConLaIa(Comando comandos[MAX_COMANDOS], int cantComandos, int matr
             mostrarOpcionesDeSesion();
             break;
         case 0:
+            cout << "IA: guardando sesion en txt";
+            esperar();
+            exportarSesionTXT(historial);
             cout << "IA: Hasta luego!\n";
+            cout << "\n\n";
             menuDeOpciones();
             break;
         default:
             cout << "Opcion invalida.\n";
-            cout << "escriba de vuelta: ";
         }
     } while (opcion != 0);
 }
 
-void administrarSesion(Comando comandos[MAX_COMANDOS], int& cantComandos, int matrizUsos[CANT_CATEGORIAS][FRANJAS_HORARIAS], NodoHistorial*& historial, int& contadorID){
+void sesionDeAdministrador(Comando comandos[MAX_COMANDOS], int& cantComandos, int matrizUsos[CANT_CATEGORIAS][FRANJAS_HORARIAS], NodoHistorial*& historial, int& contadorID){
     int opcion;
     mostrarMenuAdministracion();
     do{
+        cout << "opcion: ";
         opcion = leerEntero();
         switch (opcion) {
         case 1:
@@ -267,14 +285,6 @@ void administrarSesion(Comando comandos[MAX_COMANDOS], int& cantComandos, int ma
     } while (opcion != 0); 
 };
 
-void menuDeOpciones(){
-    cout << "------ elija una opcion ------- \n ";
-    cout << "oprima 1 para hablar con la IA \n";
-    cout << "oprima 2 para entrar al menu de ajustes \n";
-    cout << "oprima 0 para terminar el programa \n" ;
-    cout << "opcion: ";
-    };
-
 
 int main() {
     Comando comandos[MAX_COMANDOS];
@@ -286,23 +296,27 @@ int main() {
     int contadorIDInteraccion = 1;
 
     int lectura = leerDesdeArchivoBinario(comandos, cantComandos);
-    this_thread::sleep_for(std::chrono::seconds(1));
+    this_thread::sleep_for(std::chrono::milliseconds(600));
     if (lectura == -1 || cantComandos == 0){cout << "no se detectaron comandos, entre al menu de ajustes y cargue datos antes de conversar con la IA \n \n ";}
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
     int opcion;
         menuDeOpciones();
     
     do {
+        cout << "opcion: ";
         opcion = leerEntero();
         switch (opcion)
         {
         case 1:
-            conversarConLaIa(comandos, cantComandos, matrizUsos, historialSesion, contadorIDInteraccion);
+            sesionDeUsuario(comandos, cantComandos, matrizUsos, historialSesion, contadorIDInteraccion);
             break;
         case 2:
-            administrarSesion(comandos, cantComandos, matrizUsos, historialSesion, contadorIDInteraccion);
+            sesionDeAdministrador(comandos, cantComandos, matrizUsos, historialSesion, contadorIDInteraccion);
             break;
-        default:
+        case 0: 
+            cout << "nos vemos! \n";
+            break;
+        default:    
             cout << "escriba una opcion valida: ";
         }
     } while (opcion != 0);
