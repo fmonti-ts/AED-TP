@@ -34,6 +34,12 @@ void consultarPorCodigo(Comando comandos[], int cantComandos);
 // --- Carga de comandos ---
 void cargarComando(Comando& c, int cod, const char* clave, const char* cat, const char* resp, const char* desc, int u,int& cant);
 
+// true si ya hay un comando con esa palabra clave (sin distinguir mayusculas)
+bool existePalabraClave(Comando arreglo[], int cant, const char* clave);
+
+// Codigo para un comando nuevo: cant + 100; si ya esta usado, suma 1 hasta encontrar uno libre
+int calcularCodigoNuevo(Comando arreglo[], int cant);
+
 // --- Recorrido / muestra ---
 
 void mostrarComandosEnMemoria(Comando arreglo[], int cant);

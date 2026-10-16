@@ -2,7 +2,8 @@
 #include <iostream>
 #include <cstring>
 #include <cctype>
-#include "comando.h"      
+#include "comando.h"
+#include "inputs.h"
 #include <chrono>   // Necesario para las unidades de tiempo (seconds, milliseconds)
 #include <thread>                           
 
@@ -20,11 +21,14 @@ void mostrarMenuAdministracion() {
     cout << "2. Mostrar Comandos en Memoria\n";
     cout << "3. Ordenar Arreglo (1: Codigo | 2: Palabra)\n";
     cout << "4. Buscar Comando por Codigo (Busqueda Binaria)\n";
+    cout << "5. Crear Nuevo Comando\n";
     cout << "6. Ver Historial Completo (Lista Enlazada)\n";
     cout << "7. Buscar / Eliminar en Historial\n";
     cout << "8. Ver Reporte de Matriz de Usos\n";
     cout << "9. Modificar Respuesta N en Disco (Acceso Aleatorio)\n";
-    cout << "10. Exportar Sesion a TXT y Corte de Control\n";
+    cout << "10. Guardar Comandos y Corte de Control\n";
+    cout << "11. Simular Conversacion (Usuario / IA)\n";
+    cout << "12. Fusionar Archivos .dat (Apareo)\n";
     cout << "0. Salir y Guardar Estado\n";
 }
 
@@ -51,6 +55,29 @@ void cargarComando(Comando& c, int cod, const char* clave, const char* cat, cons
     strcpy(c.descripcion, desc);
     c.usos = u;
     cant++;
+}
+
+bool existePalabraClave(Comando arreglo[], int cant, const char* clave) {
+    char buscada[30], actual[30];
+    aMinuscula(buscada, clave);
+    for (int i = 0; i < cant; i++) {
+        aMinuscula(actual, arreglo[i].palabraClave);
+        if (strcmp(buscada, actual) == 0) return true;
+    }
+    return false;
+}
+
+int calcularCodigoNuevo(Comando arreglo[], int cant) {
+    int codigo = cant + 100;
+    bool usado = true;
+    while (usado) {
+        usado = false;
+        for (int i = 0; i < cant && !usado; i++) {
+            if (arreglo[i].codigo == codigo) usado = true;
+        }
+        if (usado) codigo++;
+    }
+    return codigo;
 }
 
 // =============================================================    
