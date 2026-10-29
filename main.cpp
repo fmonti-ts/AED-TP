@@ -1,20 +1,16 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include <iostream> //Libreria estandar de entrada y salida, funciones que permiten mostrar mensajes en pantalla y leer datos ingresados por el usuario como COUT y CIN
-#include <cstring>  //Libreria estandar de manejo de cadenas, funciones que permiten manipular cadenas de caracteres.
-#include <fstream>
-#include <chrono>   // Necesario para las unidades de tiempo (seconds, milliseconds)
-#include <thread> 
+#include <iostream> 
+#include <cstring> 
 
-
-#include "comando.h"  // Modulo de dominio: struct Comando, arreglo y matriz de usos
-#include "lista.h"     // Biblioteca de lista enlazada: historial de interacciones
-#include "archivos.h"  // Modulo de archivos: binario, acceso aleatorio, texto y corte de control
+#include "comando.h"  
+#include "lista.h"     
+#include "archivos.h" 
 #include "inputs.h"
-#include "cola.h"      // Biblioteca de cola: comandos escritos por el usuario simulado
-#include "pila.h"      // Biblioteca de pila: respuestas de la IA simulada
+#include "cola.h"      
+#include "pila.h"      
 
 
-using namespace std; //Evita tener que escribir std:: antes de cada funcion o clase de la libreria estandar, como cout, cin, string, etc.
+using namespace std;
 
 // --------------------
 //  MANEJO DE HISTORIAL
@@ -22,18 +18,16 @@ using namespace std; //Evita tener que escribir std:: antes de cada funcion o cl
 
 void esperar(){
     cout << ".";
-    this_thread::sleep_for(std::chrono::milliseconds(300));
+    pausar(300);
     cout << ".";
-    this_thread::sleep_for(std::chrono::milliseconds(300));
+    pausar(300);
     cout << ".\n";
-    this_thread::sleep_for(std::chrono::milliseconds(300));
+    pausar(300);
     cout << "\n\n\n";
 }
 
 void generarDatosDePrueba(Comando arreglo[], int& cant) {
     cant = 0;
-    // Codigos unicos (100 a 109) y desordenados a proposito, para poder probar el ordenamiento.
-    // Con 10 comandos cargados, el proximo codigo (cant + 100) es 110: queda libre.
     cargarComando(arreglo[0], 103, "hora","Sistema","La hora actual es 16:00 hs.","Informa la hora actual.",12,cant);
     cargarComando(arreglo[1], 100, "clima","Consultas","El clima esta despejado y templado.","Informa el estado del clima.",8,cant);
     cargarComando(arreglo[2], 102, "chiste","Ocio","Que hace una abeja en el gimnasio? Zumba.","Cuenta un chiste.",25,cant);
@@ -46,18 +40,6 @@ void generarDatosDePrueba(Comando arreglo[], int& cant) {
     cargarComando(arreglo[9], 109, "hola","Sistema","Hola, soy una IA convrsasional.","Saluda al usuario.",30, cant);
 
     cout << "\n[OK] Datos de prueba cargados en el arreglo.\n";
-}
-
-int agregarComando(Comando arreglo[], int& cant, int cod, const char* clave, const char* cat, const char* resp, const char* desc, int u) {
-    if (cant >= MAX_COMANDOS) {
-        return -1;
-    }
-    cargarComando(arreglo[cant], cod, clave, cat, resp, desc, u, cant);
-    if (cant == MAX_COMANDOS) {
-        return -2;
-    }
-    return cant;
-
 }
 
 void gestionarHistorial(NodoHistorial*& historial) {
@@ -76,64 +58,25 @@ void gestionarHistorial(NodoHistorial*& historial) {
     }
 }
 
+void procesarMatrizUsos(int matriz[CANT_CATEGORIAS][FRANJAS_HORARIAS]) {
+    cout << "\n=== REPORTE DE LA MATRIZ DE USOS (categoria x franja horaria) ===\n\n";
+    totalesMatrizUsos(matriz);
+    maximoMatrizUsos(matriz);
+}
+
 void menuDeOpciones(){
     cout << "------ elija una opcion ------- \n ";
     cout << "oprima 1 para hablar con la IA \n";
     cout << "oprima 2 para entrar al menu de ajustes \n";
     cout << "oprima 0 para terminar el programa \n" ;
-};
+}
 
 // -------------------
 //  MANEJO DE ARCHIVOS
 // -------------------
 
-// Pide un nombre de archivo .dat (agrega ".dat" si falta). Devuelve false si se deja el input vacio.
-// Solo escribe en destino cuando devuelve true.
-bool pedirNombreDat(const char* mensaje, char* destino) {
-    char entrada[MAX_ENTRADA_NOMBRE];
-    cout << mensaje;
-    leerLinea(entrada, MAX_ENTRADA_NOMBRE);
-
-    char nombre[MAX_NOMBRE_ARCHIVO];
-    armarNombreDat(entrada, nombre, MAX_NOMBRE_ARCHIVO);
-    if (strcmp(nombre, ".dat") == 0) return false;   // input vacio
-    strcpy(destino, nombre);
-    return true;
-}
-
-// Igual que pedirNombreDat, pero insiste hasta que el archivo exista (o se deje vacio).
-bool pedirArchivoExistente(const char* mensaje, char* destino) {
-    char nombre[MAX_NOMBRE_ARCHIVO];
-    while (pedirNombreDat(mensaje, nombre)) {
-        if (existeArchivo(nombre)) {
-            strcpy(destino, nombre);
-            return true;
-        }
-        cout << "No existe el archivo '" << nombre << "'. Intente de nuevo.\n";
-    }
-    return false;
-}
-
-// Lista los .dat de la carpeta. Devuelve cuantos hay.
-int listarArchivosDat() {
-    char nombres[MAX_ARCHIVOS_DAT][MAX_NOMBRE_ARCHIVO];
-    int n = detectarArchivosDat(nombres, MAX_ARCHIVOS_DAT);
-    if (n > 0) {
-        cout << "Se detectaron " << n << " archivo(s) .dat:\n";
-        for (int i = 0; i < n; i++) cout << "  " << i + 1 << ". " << nombres[i] << "\n";
-    }
-    return n;
-}
-
-// Si todavia no hay un archivo cargado/guardado, pide el nombre. false si se cancela.
-bool asegurarArchivoActual(char* archivoActual) {
-    if (archivoActual[0] != '\0') return true;
-    cout << "No hay un archivo .dat cargado.\n";
-    return pedirNombreDat("Nombre del archivo .dat a usar (enter vacio para cancelar): ", archivoActual);
-}
-
 void cargarArchivoInicial(Comando comandos[], int& cantComandos, char* archivoActual) {
-    this_thread::sleep_for(std::chrono::milliseconds(600));
+    pausar(600);
     int n = listarArchivosDat();
     if (n == 0) {
         cout << "[!] No se detectaron archivos .dat, entre al menu de ajustes y cargue datos antes de conversar con la IA \n \n ";
@@ -157,9 +100,16 @@ void exportarYListar(Comando comandos[], int cantComandos, char* archivoActual) 
         cout << "Operacion cancelada.\n";
         return;
     }
-    ordenarPorCategoria(comandos, cantComandos);
-    guardarEnArchivoBinario(comandos, cantComandos, archivoActual);
-    listadoPorCategoria(archivoActual);
+    // El corte de control necesita el .dat ordenado por categoria: se ordena una copia
+    // para no alterar el orden del arreglo en memoria (la busqueda binaria lo necesita por codigo).
+    Comando copia[MAX_COMANDOS];
+    memcpy(copia, comandos, sizeof(Comando) * cantComandos);
+    ordenarPorCategoria(copia, cantComandos);
+    cout << "\n[OK] Comandos ordenados por CATEGORIA (el arreglo en memoria no se modifica).\n";
+
+    if (guardarEnArchivoBinario(copia, cantComandos, archivoActual)) {
+        listadoPorCategoria(archivoActual);
+    }
 }
 
 void modificarRespuestaEnDisco(Comando comandos[], int& cantComandos, char* archivoActual) {
@@ -181,11 +131,10 @@ void modificarRespuestaEnDisco(Comando comandos[], int& cantComandos, char* arch
     cout << "Nueva Respuesta: ";
     leerLinea(nuevaResp, 100);
 
-    guardarEnArchivoBinario(comandos, cantComandos, archivoActual);
+    if (!guardarEnArchivoBinario(comandos, cantComandos, archivoActual)) return;
     modificarRespuestaRegistroN(archivoActual, n, nuevaResp);
-    int lectura = leerDesdeArchivoBinario(comandos, cantComandos, archivoActual);
-    if(lectura == -1){
-        "por alguna razon el guardado fallo";
+    if (leerDesdeArchivoBinario(comandos, cantComandos, archivoActual) == -1) {
+        cout << "[!] No se pudo volver a leer '" << archivoActual << "' despues de modificarlo.\n";
     }
 }
 
@@ -196,37 +145,17 @@ void fusionarComandos() {
         return;
     }
     char archivoA[MAX_NOMBRE_ARCHIVO], archivoB[MAX_NOMBRE_ARCHIVO], salida[MAX_NOMBRE_ARCHIVO];
-    if (!pedirArchivoExistente("Primer archivo (enter vacio para cancelar): ", archivoA)) {
-        cout << "Fusion cancelada.\n";
-        return;
-    }
-    if (!pedirArchivoExistente("Segundo archivo (enter vacio para cancelar): ", archivoB)) {
-        cout << "Fusion cancelada.\n";
-        return;
-    }
-    if (!pedirNombreDat("Nombre del archivo nuevo (enter vacio para cancelar): ", salida)) {
+    if (!pedirArchivoExistente("Primer archivo (enter vacio para cancelar): ", archivoA) ||
+        !pedirArchivoExistente("Segundo archivo (enter vacio para cancelar): ", archivoB) ||
+        !pedirNombreDat("Nombre del archivo nuevo (enter vacio para cancelar): ", salida)) {
         cout << "Fusion cancelada.\n";
         return;
     }
     aparearArchivos(archivoA, archivoB, salida);
 }
 
-int procesarFraseUsuario(Comando arreglo[], int cant, const char* fraseInput) {
-    char fraseMin[100], claveMin[30];
-    aMinuscula(fraseMin, fraseInput);
-
-    for (int i = 0; i < cant; i++) {
-        aMinuscula(claveMin, arreglo[i].palabraClave);
-        if (strstr(fraseMin, claveMin) != NULL) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-
 void conversarConLaIA(Comando comandos[MAX_COMANDOS], int cantComandos, int matrizUsos[CANT_CATEGORIAS][FRANJAS_HORARIAS], int franja, NodoHistorial*& historial, int& contadorID) {
-    char frase[100] = "";      // inicializada: antes se comparaba sin haberle dado valor
+    char frase[100] = "";
     char fraseMin[100] = "";
     do {
         cout << "Usuario dice: ";
@@ -241,30 +170,13 @@ void conversarConLaIA(Comando comandos[MAX_COMANDOS], int cantComandos, int matr
             agregarInteraccionHistorial(historial, contadorID++, frase, "Comando invalido");
         }
         aMinuscula(fraseMin, frase);
-    } while (strcmp(fraseMin, "adios") != 0 && !cin.eof());   // termina con "adios" (o si se cierra la entrada)
+    } while (strcmp(fraseMin, "adios") != 0 && !cin.eof());
 }
-
-
 
 // -------------------
 //  MANEJO DE COMANDDOS
 // -------------------
 
-
-int buscarComando(Comando arreglo[MAX_COMANDOS], int cantComandos, const char* palabraClave) {
-    if (palabraClave[0] == '\0') return -1;   // texto vacio: coincidiria con todo
-
-    char buscada[100], claveMin[30];
-    aMinuscula(buscada, palabraClave);
-
-    for (int i = 0; i < cantComandos; i++) {
-        aMinuscula(claveMin, arreglo[i].palabraClave);
-        if (strstr(claveMin, buscada) != NULL) {
-            return i;
-        }
-    }
-    return -1;
-}
 
 void elegirOrdenamiento(Comando comandos[], int cantComandos) {
     int criterio;
@@ -273,8 +185,14 @@ void elegirOrdenamiento(Comando comandos[], int cantComandos) {
         criterio = leerEntero();
     } while (criterio < 0 || criterio > 2);
 
-    if (criterio == 1) ordenarPorCodigo(comandos, cantComandos);
-    else if (criterio == 2) ordenarPorPalabra(comandos, cantComandos);
+    if (criterio == 1) {
+        ordenarPorCodigo(comandos, cantComandos);
+        cout << "\n[OK] Arreglo ordenado por CODIGO.\n";
+    }
+    else if (criterio == 2) {
+        ordenarPorPalabra(comandos, cantComandos);
+        cout << "\n[OK] Arreglo ordenado por PALABRA CLAVE.\n";
+    }
 }
 
 void consultarPorCodigo(Comando comandos[], int cantComandos) {
@@ -300,16 +218,6 @@ void preguntarQueHaceUnComando(Comando comandos[], int cantComandos) {
     mostrarDescripcion(comandos, cantComandos, pos);   // si pos es -1 muestra el error
 }
 
-// Pide un texto que no puede quedar vacio.
-void pedirTextoNoVacio(const char* mensaje, char* destino, int tam) {
-    do {
-        cout << mensaje;
-        leerLinea(destino, tam);
-        if (destino[0] == '\0') cout << "No puede quedar vacio.\n";
-    } while (destino[0] == '\0' && !cin.eof());
-}
-
-// Pide 1 a 1 los datos del comando. El codigo se calcula solo (cant + 100) y todo se pasa a agregarComando().
 void crearComando(Comando comandos[], int& cantComandos) {
     if (cantComandos >= MAX_COMANDOS) {
         cout << "[!] Se alcanzo el limite de " << MAX_COMANDOS << " comandos. No se pueden agregar mas.\n";
@@ -319,12 +227,12 @@ void crearComando(Comando comandos[], int& cantComandos) {
     char clave[30], respuesta[100], descripcion[100];
     bool repetida;
     do {
-        pedirTextoNoVacio("Palabra clave: ", clave, 30);
+        cout << "Palabra clave: ";
+        leerLinea(clave, 30, false);
         repetida = existePalabraClave(comandos, cantComandos, clave);
         if (repetida) cout << "Esa palabra clave ya existe en otro comando. Escriba otra.\n";
     } while (repetida && !cin.eof());
 
-    const char* categorias[CANT_CATEGORIAS] = { "Sistema", "Consultas", "Ocio" };
     int cat;
     do {
         cout << "Categoria (1: Sistema | 2: Consultas | 3: Ocio): ";
@@ -332,8 +240,10 @@ void crearComando(Comando comandos[], int& cantComandos) {
     } while ((cat < 1 || cat > CANT_CATEGORIAS) && !cin.eof());
     if (cat < 1 || cat > CANT_CATEGORIAS) return;   // entrada cerrada
 
-    pedirTextoNoVacio("Respuesta: ", respuesta, 100);
-    pedirTextoNoVacio("Descripcion: ", descripcion, 100);
+    cout << "Respuesta: ";
+    leerLinea(respuesta, 100, false);
+    cout << "Descripcion: ";
+    leerLinea(descripcion, 100, false);
 
     int usos;
     do {
@@ -343,38 +253,17 @@ void crearComando(Comando comandos[], int& cantComandos) {
     if (usos < 0) return;
 
     int codigo = calcularCodigoNuevo(comandos, cantComandos);
-    int flag = agregarComando(comandos, cantComandos, codigo, clave, categorias[cat - 1], respuesta, descripcion, usos);
-    switch(flag){
-        case -1:
-        cout << "no se agrego el comando, se exedio el limite de comandos\n";
-    break;
-        case -2:
-        cout << "comando agregado correctamente. Se alcanzo el limite de comandos\n";
-    break;
-        default:
-        cout << "comando agregado correctamente\n";
-    break;
-        
-    }
+    cargarComando(comandos[cantComandos], codigo, clave, NOMBRES_CATEGORIAS[cat - 1], respuesta, descripcion, usos, cantComandos);
+
+    cout << "comando agregado correctamente";
+    if (cantComandos == MAX_COMANDOS) cout << ". Se alcanzo el limite de comandos";
+    cout << "\n";
 }
 
 // -------------------
 //  SIMULACION DE CONVERSACION
 // -------------------
 
-// Busca un comando cuya palabra clave sea IGUAL al texto (sin distinguir mayusculas). -1 si no hay.
-int buscarComandoExacto(Comando arreglo[], int cant, const char* texto) {
-    char textoMin[100], claveMin[30];
-    aMinuscula(textoMin, texto);
-    for (int i = 0; i < cant; i++) {
-        aMinuscula(claveMin, arreglo[i].palabraClave);
-        if (strcmp(textoMin, claveMin) == 0) return i;
-    }
-    return -1;
-}
-
-// Pide comandos uno tras otro (enter vacio para terminar), los encola y al final recorre la cola
-// para guardarla en usuario.txt (un comando por linea).
 void simularUsuario() {
     Cola cola;
     crearCola(cola);
@@ -389,7 +278,7 @@ void simularUsuario() {
         if ((int)strlen(linea) >= LARGO_TEXTO_COLA) {
             cout << "[!] Se guardara recortado a " << LARGO_TEXTO_COLA - 1 << " caracteres.\n";
         }
-        colar(cola, linea);
+        encolar(cola, linea);
     }
 
     if (estaVacio(cola)) {
@@ -401,83 +290,42 @@ void simularUsuario() {
     recorrerCola(cola, cout);
     mostrarFinal(cola);
 
-    ofstream txt("usuario.txt");
-    if (!txt) {
-        cout << "Error al crear usuario.txt\n";
-    }
-    else {
-        recorrerCola(cola, txt);
-        txt.close();
-        cout << "\n[OK] Archivo 'usuario.txt' generado.\n";
-    }
+    guardarColaEnTXT(cola, "usuario.txt");
     liberarCola(cola);
 }
 
-// Lee usuario.txt; responde cada mensaje si hay un comando en memoria con ese nombre, y apila las
-// respuestas. Al final desapila todo (sin invertir: sale primero lo ultimo) a simulacro.txt con el
-// mismo formato que sesion.txt.
-// Por cada interaccion se apilan DOS textos: primero el mensaje del usuario y despues la respuesta de la IA,
-// asi al desapilar sale la respuesta y justo despues su mensaje.
 void simularIA(Comando comandos[], int cantComandos) {
     if (cantComandos == 0) {
         cout << "[!] No hay comandos en memoria. Cargue datos primero.\n";
         return;
     }
-    ifstream archivo("usuario.txt");
-    if (!archivo) {
+
+    Cola mensajes;
+    crearCola(mensajes);
+    int total = leerMensajesTXT("usuario.txt", mensajes);
+    if (total == -1) {
         cout << "No se encontro 'usuario.txt'. Simule primero una conversacion de usuario.\n";
+        return;
+    }
+    if (total == 0) {
+        cout << "'usuario.txt' no tiene mensajes: no se genero simulacro.txt.\n";
         return;
     }
 
     Pila pila;
     crearPila(pila);
-    int total = 0;
-    char linea[100];
-    while (true) {
-        archivo.getline(linea, 100);
-        if (archivo.fail() && !archivo.eof()) {   // linea demasiado larga: se recorta
-            archivo.clear();
-            archivo.ignore(1000, '\n');
-        }
-        else if (archivo.fail()) break;           // fin del archivo
-
-        int len = (int)strlen(linea);
-        if (len > 0 && linea[len - 1] == '\r') linea[len - 1] = '\0';
-        if (linea[0] == '\0') continue;
-
+    char linea[LARGO_TEXTO_COLA];
+    while (desencolar(mensajes, linea)) {
         int pos = buscarComandoExacto(comandos, cantComandos, linea);
         const char* respuesta = (pos != -1) ? comandos[pos].respuesta : "no se como responder eso";
 
         cout << "Usuario dice: " << linea << "\nIA responde: " << respuesta << "\n";
         apilar(pila, linea);
         apilar(pila, respuesta);
-        total++;
-    }
-    archivo.close();
-
-    if (total == 0) {
-        cout << "'usuario.txt' no tiene mensajes: no se genero simulacro.txt.\n";
-        return;
     }
 
-    ofstream txt("simulacro.txt");
-    if (!txt) {
-        cout << "Error al crear simulacro.txt\n";
-        liberarPila(pila);
-        return;
-    }
-    txt << "=== SIMULACRO DE CONVERSACION USUARIO - IA ===\n";
-    char resp[LARGO_RESPUESTA_PILA], msg[LARGO_RESPUESTA_PILA];
-    int id = total;
-    while (!estaVacia(pila)) {
-        desapilar(pila, resp);
-        if (!desapilar(pila, msg)) msg[0] = '\0';
-        txt << "[ID: " << id << "] User: " << msg << " | IA: " << resp << "\n";
-        id--;
-    }
-    txt.close();
+    guardarSimulacroTXT(pila, total, "simulacro.txt");
     liberarPila(pila);
-    cout << "\n[OK] Archivo 'simulacro.txt' generado.\n";
 }
 
 void simularConversacion(Comando comandos[], int cantComandos) {
@@ -487,6 +335,29 @@ void simularConversacion(Comando comandos[], int cantComandos) {
     else if (sub == 2) simularIA(comandos, cantComandos);
 }
 
+void salirSesionAdministrador( char* archivoActual, Comando comandos[MAX_COMANDOS], int& cantComandos, NodoHistorial*& historial){
+    char nombre[MAX_NOMBRE_ARCHIVO];
+            if (archivoActual[0] != '\0') cout << "(Archivo actual: " << archivoActual << ")\n";
+            if (pedirNombreDat("Escriba el nombre del archivo O deje vacio para no guardar: ", nombre)) {
+                guardarEnArchivoBinario(comandos, cantComandos, nombre);   // si existe, se sobreescribe
+                strcpy(archivoActual, nombre);
+            }
+            else {
+                cout << "No se guardaron los comandos.\n";
+            }
+            liberarHistorial(historial);
+            cout << "Saliendo del programa...\n";
+            menuDeOpciones();
+}
+
+void salirSesionIA(NodoHistorial*& historial){
+    cout << "IA: guardando sesion en txt";
+    esperar();
+    exportarSesionTXT(historial);
+    cout << "IA: Hasta luego!\n";
+    cout << "\n\n";
+    menuDeOpciones();
+}
 // -------------------
 //      MAIN
 // -------------------
@@ -494,7 +365,7 @@ void simularConversacion(Comando comandos[], int cantComandos) {
 
 void sesionDeUsuario(Comando comandos[MAX_COMANDOS], int cantComandos, int matrizUsos[CANT_CATEGORIAS][FRANJAS_HORARIAS], NodoHistorial*& historial, int& contadorID) {
     if (cantComandos == 0) {
-        cout << "\n[!] No hay comandos cargados. Cargue datos de prueba primero (opcion 2).\n";
+        cout << "\n[!] No hay comandos cargados. Cargue datos de prueba primero (menu de ajustes, opcion 1).\n";
         return;
     }
 
@@ -513,6 +384,7 @@ void sesionDeUsuario(Comando comandos[MAX_COMANDOS], int cantComandos, int matri
         case 2:
             conversarConLaIA(comandos, cantComandos, matrizUsos, franja, historial, contadorID);
             cout << "\n\n";
+            mostrarOpcionesDeSesion();
             
             break;
         case 3:
@@ -522,12 +394,7 @@ void sesionDeUsuario(Comando comandos[MAX_COMANDOS], int cantComandos, int matri
             mostrarOpcionesDeSesion();
             break;
         case 0:
-            cout << "IA: guardando sesion en txt";
-            esperar();
-            exportarSesionTXT(historial);
-            cout << "IA: Hasta luego!\n";
-            cout << "\n\n";
-            menuDeOpciones();
+            salirSesionIA(historial);
             break;
         default:
             cout << "Opcion invalida.\n";
@@ -535,7 +402,7 @@ void sesionDeUsuario(Comando comandos[MAX_COMANDOS], int cantComandos, int matri
     } while (opcion != 0);
 }
 
-void sesionDeAdministrador(Comando comandos[MAX_COMANDOS], int& cantComandos, int matrizUsos[CANT_CATEGORIAS][FRANJAS_HORARIAS], NodoHistorial*& historial, int& contadorID, char* archivoActual){
+void sesionDeAdministrador(Comando comandos[MAX_COMANDOS], int& cantComandos, int matrizUsos[CANT_CATEGORIAS][FRANJAS_HORARIAS], NodoHistorial*& historial, char* archivoActual){
     int opcion;
     mostrarMenuAdministracion();
     do{
@@ -579,25 +446,14 @@ void sesionDeAdministrador(Comando comandos[MAX_COMANDOS], int& cantComandos, in
             fusionarComandos();
             break;
         case 0: {
-            char nombre[MAX_NOMBRE_ARCHIVO];
-            if (archivoActual[0] != '\0') cout << "(Archivo actual: " << archivoActual << ")\n";
-            if (pedirNombreDat("Escriba el nombre del archivo O deje vacio para no guardar: ", nombre)) {
-                guardarEnArchivoBinario(comandos, cantComandos, nombre);   // si existe, se sobreescribe
-                strcpy(archivoActual, nombre);
-            }
-            else {
-                cout << "No se guardaron los comandos.\n";
-            }
-            liberarHistorial(historial);
-            cout << "Saliendo del programa...\n";
-            menuDeOpciones();
+            salirSesionAdministrador(archivoActual, comandos, cantComandos, historial);
             break;
         }
         default:
             cout << "Opcion invalida, intente otra vez.\n";
         }
     } while (opcion != 0); 
-};
+}
 
 
 int main() {
@@ -612,9 +468,9 @@ int main() {
     char archivoActual[MAX_NOMBRE_ARCHIVO] = "";   // .dat cargado / guardado en esta ejecucion ("" = ninguno)
 
     cargarArchivoInicial(comandos, cantComandos, archivoActual);
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    pausar(500);
     int opcion;
-        menuDeOpciones();
+    menuDeOpciones();
     
     do {
         cout << "opcion: ";
@@ -625,7 +481,7 @@ int main() {
             sesionDeUsuario(comandos, cantComandos, matrizUsos, historialSesion, contadorIDInteraccion);
             break;
         case 2:
-            sesionDeAdministrador(comandos, cantComandos, matrizUsos, historialSesion, contadorIDInteraccion, archivoActual);
+            sesionDeAdministrador(comandos, cantComandos, matrizUsos, historialSesion, archivoActual);
             break;
         case 0: 
             cout << "nos vemos! \n";

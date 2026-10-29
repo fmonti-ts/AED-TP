@@ -5,6 +5,7 @@
 #include <cctype>
 #include <filesystem>   // C++17: para detectar los .dat de la carpeta
 #include "archivos.h"
+#include "inputs.h"
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -15,7 +16,7 @@ namespace fs = std::filesystem;
 static bool terminaEnDat(const char* s) {
     return fs::path(s).extension() == ".dat";
 }
-void armarNombreDat(const char* entrada, char* destino, int tamDestino) {
+void armarNombre(const char* entrada, char* destino, int tamDestino) {
     while (*entrada == ' ' || *entrada == '\t') entrada++;
     int len = (int)strlen(entrada);
     while (len > 0 && (entrada[len - 1] == ' ' || entrada[len - 1] == '\t' || entrada[len - 1] == '\r')) len--;
@@ -30,7 +31,7 @@ bool existeArchivo(const char* nombre) {
     return !archivo.fail();
 }
 
-int detectarArchivosDat(char nombres[][MAX_NOMBRE_ARCHIVO], int maxNombres) {
+int detectarArchivos(char nombres[][MAX_NOMBRE_ARCHIVO], int maxNombres) {
     int cant = 0;
     error_code ec;
     fs::directory_iterator it(".", ec), fin;
@@ -59,30 +60,109 @@ int detectarArchivosDat(char nombres[][MAX_NOMBRE_ARCHIVO], int maxNombres) {
     return cant;
 }
 
+void listarArchivos(char nombres[][MAX_NOMBRE_ARCHIVO], int n) {
+    if (n > 0) {
+        cout << "Se detectaron " << n << " archivo(s) .dat:\n";
+        for (int i = 0; i < n; i++) cout << "  " << i + 1 << ". " << nombres[i] << "\n";
+    }
+}
+
+int listarArchivosDat() {
+    char nombres[MAX_ARCHIVOS_DAT][MAX_NOMBRE_ARCHIVO];
+    int n = detectarArchivos(nombres, MAX_ARCHIVOS_DAT);
+    listarArchivos(nombres, n);
+    return n;
+}
+
+// =============================================================
+// Pedir nombres de archivo por teclado
+// =============================================================
+
+bool pedirNombreDat(const char* mensaje, char* destino) {
+    char entrada[MAX_ENTRADA_NOMBRE];
+    cout << mensaje;
+    leerLinea(entrada, MAX_ENTRADA_NOMBRE);
+
+    char nombre[MAX_NOMBRE_ARCHIVO];
+    armarNombre(entrada, nombre, MAX_NOMBRE_ARCHIVO);
+    if (strcmp(nombre, ".dat") == 0) return false;   // enter vacio
+    strcpy(destino, nombre);
+    return true;
+}
+
+bool pedirArchivoExistente(const char* mensaje, char* destino) {
+    char nombre[MAX_NOMBRE_ARCHIVO];
+    while (pedirNombreDat(mensaje, nombre)) {
+        if (existeArchivo(nombre)) {
+            strcpy(destino, nombre);
+            return true;
+        }
+        cout << "No existe el archivo '" << nombre << "'. Intente de nuevo.\n";
+    }
+    return false;
+}
+
+bool asegurarArchivoActual(char* archivoActual) {
+    if (archivoActual[0] != '\0') return true;
+    cout << "No hay un archivo .dat cargado.\n";
+    return pedirNombreDat("Nombre del archivo .dat a usar (enter vacio para cancelar): ", archivoActual);
+}
+
 // =============================================================
 // Archivo binario
 // =============================================================
 
-void guardarEnArchivoBinario(Comando arreglo[], int cant, const char* nombreArchivo) {
-    ofstream archivo(nombreArchivo, ios::binary | ios::trunc);
-    if (!archivo) { cout << "Error al crear " << nombreArchivo << "\n"; return; }
-    archivo.write((char*)(arreglo), sizeof(Comando) * cant);
+// Cantidad de registros del .dat segun su tamano. -1 si no se pudo abrir.
+static int contarRegistros(const char* nombre) {
+    ifstream archivo(nombre, ios::binary);
+    if (!archivo) return -1;
+    archivo.seekg(0, ios::end);
+    int cant = (int)(archivo.tellg() / (streamoff)sizeof(Comando));
     archivo.close();
+    return cant;
+}
+
+// Lee hasta 'max' registros del .dat en destino. Devuelve cuantos leyo (-1 si no se pudo abrir).
+static int leerRegistros(const char* nombre, Comando* destino, int max) {
+    ifstream archivo(nombre, ios::binary);
+    if (!archivo) return -1;
+    int cant = 0;
+    while (cant < max && archivo.read((char*)(&destino[cant]), sizeof(Comando))) {
+        cant++;
+    }
+    archivo.close();
+    return cant;
+}
+
+// Pisa el .dat con los 'cant' registros de v. false si no se pudo escribir.
+static bool escribirRegistros(const char* nombre, const Comando* v, int cant) {
+    ofstream archivo(nombre, ios::binary | ios::trunc);
+    if (!archivo) return false;
+    archivo.write((const char*)v, sizeof(Comando) * cant);
+    bool ok = !archivo.fail();
+    archivo.close();
+    return ok;
+}
+
+bool guardarEnArchivoBinario(Comando arreglo[], int cant, const char* nombreArchivo) {
+    if (!escribirRegistros(nombreArchivo, arreglo, cant)) {
+        cout << "Error al crear " << nombreArchivo << "\n";
+        return false;
+    }
     cout << "\n[OK] Archivo '" << nombreArchivo << "' generado/actualizado en disco.\n";
+    return true;
 }
 
 int leerDesdeArchivoBinario(Comando arreglo[], int& cant, const char* nombreArchivo) {
-    ifstream archivo(nombreArchivo, ios::binary);
-    if (!archivo) { cout << "No se encontro '" << nombreArchivo << "'. Se creara uno al guardar datos.\n"; return -1; }
-    cant = 0;
-    // Se lee como maximo MAX_COMANDOS: el arreglo no tiene lugar para mas.
-    while (cant < MAX_COMANDOS && archivo.read((char*)(&arreglo[cant]), sizeof(Comando))) {
-        cant++;
+    int enArchivo = contarRegistros(nombreArchivo);
+    if (enArchivo == -1) {
+        cout << "No se encontro '" << nombreArchivo << "'. Se creara uno al guardar datos.\n";
+        return -1;
     }
-    bool hayMas = (cant == MAX_COMANDOS && archivo.peek() != EOF);
-    archivo.close();
+    // Se lee como maximo MAX_COMANDOS: el arreglo no tiene lugar para mas.
+    cant = leerRegistros(nombreArchivo, arreglo, MAX_COMANDOS);
     cout << "\n[OK] " << cant << " comandos cargados desde '" << nombreArchivo << "'.\n";
-    if (hayMas) {
+    if (enArchivo > MAX_COMANDOS) {
         cout << "[!] El archivo tiene mas de " << MAX_COMANDOS << " comandos: solo se cargaron los primeros " << MAX_COMANDOS << ".\n";
     }
     return 0;
@@ -92,12 +172,17 @@ void modificarRespuestaRegistroN(const char* nombreArchivo, int nRegistro, const
     fstream archivo(nombreArchivo, ios::in | ios::out | ios::binary);
     if (!archivo) { cout << "Error al abrir " << nombreArchivo << "\n"; return; }
 
-    archivo.seekg(nRegistro * sizeof(Comando));
+    streamoff posicion = (streamoff)(nRegistro * sizeof(Comando));
+    archivo.seekg(posicion);
     Comando reg;
-    archivo.read((char*)(&reg), sizeof(Comando));
+    if (!archivo.read((char*)(&reg), sizeof(Comando))) {
+        cout << "[!] El registro N=" << nRegistro << " no existe en '" << nombreArchivo << "'.\n";
+        archivo.close();
+        return;
+    }
     strcpy(reg.respuesta, nuevaRespuesta);
 
-    archivo.seekp(nRegistro * sizeof(Comando));
+    archivo.seekp(posicion);
     archivo.write((char*)(&reg), sizeof(Comando));
 
     archivo.close();
@@ -122,15 +207,10 @@ static int compararSinMayusculas(const char* a, const char* b) {
 
 // Lee TODO el .dat en un arreglo dinamico (el que llama hace delete[]). NULL si no se pudo abrir.
 static Comando* leerArchivoCompleto(const char* nombre, int& cant) {
-    ifstream archivo(nombre, ios::binary);
-    if (!archivo) { cant = 0; return NULL; }
-    archivo.seekg(0, ios::end);
-    streamoff bytes = archivo.tellg();
-    archivo.seekg(0, ios::beg);
-    cant = (int)(bytes / (streamoff)sizeof(Comando));
+    cant = contarRegistros(nombre);
+    if (cant == -1) { cant = 0; return NULL; }
     Comando* v = new Comando[cant > 0 ? cant : 1];
-    if (cant > 0) archivo.read((char*)v, sizeof(Comando) * cant);
-    archivo.close();
+    leerRegistros(nombre, v, cant);
     return v;
 }
 
@@ -154,6 +234,54 @@ static void ordenarPorClave(Comando v[], int cant) {
     }
 }
 
+// El apareo exige ambos ordenados por la clave de comparacion (palabra clave)
+static void ordenarSiHaceFalta(Comando v[], int cant, const char* nombre) {
+    if (estaOrdenadoPorClave(v, cant)) return;
+    cout << "[!] '" << nombre << "' no esta ordenado por palabra clave. Ordenando en memoria...\n";
+    ordenarPorClave(v, cant);
+}
+
+// Apareo: se toma siempre el menor de los dos frentes; si la palabra clave es igual a la del
+// ultimo registro del resultado, no se agrega otro: se suman los usos. En empate sale primero A,
+// asi que se conserva el registro del primer archivo. Devuelve el resultado (el que llama hace delete[]).
+static Comando* mezclarPorClave(const Comando a[], int na, const Comando b[], int nb, int& nr, int& combinados) {
+    Comando* res = new Comando[na + nb + 1];
+    nr = 0;
+    combinados = 0;
+    int i = 0, j = 0;
+    while (i < na || j < nb) {
+        const Comando* sig;
+        if (j >= nb || (i < na && compararSinMayusculas(a[i].palabraClave, b[j].palabraClave) <= 0)) sig = &a[i++];
+        else sig = &b[j++];
+
+        if (nr > 0 && compararSinMayusculas(res[nr - 1].palabraClave, sig->palabraClave) == 0) {
+            res[nr - 1].usos += sig->usos;
+            combinados++;
+        }
+        else {
+            res[nr++] = *sig;
+        }
+    }
+    return res;
+}
+
+// Los codigos tienen que ser unicos (la busqueda binaria los necesita)
+static void asegurarCodigosUnicos(Comando res[], int nr) {
+    int maxCodigo = 0;
+    for (int k = 0; k < nr; k++) if (res[k].codigo > maxCodigo) maxCodigo = res[k].codigo;
+    for (int k = 1; k < nr; k++) {
+        for (int m = 0; m < k; m++) {
+            if (res[m].codigo == res[k].codigo) {
+                maxCodigo++;
+                cout << "[!] Codigo " << res[k].codigo << " repetido en '" << res[k].palabraClave
+                     << "': se le asigno el codigo " << maxCodigo << ".\n";
+                res[k].codigo = maxCodigo;
+                break;
+            }
+        }
+    }
+}
+
 int aparearArchivos(const char* archivoA, const char* archivoB, const char* archivoSalida) {
     if (compararSinMayusculas(archivoA, archivoB) == 0) {
         cout << "[!] Debe elegir dos archivos distintos.\n";
@@ -170,62 +298,20 @@ int aparearArchivos(const char* archivoA, const char* archivoB, const char* arch
     Comando* b = leerArchivoCompleto(archivoB, nb);
     if (b == NULL) { cout << "[!] No se pudo abrir '" << archivoB << "'.\n"; delete[] a; return -1; }
 
-    // El apareo exige ambos ordenados por la clave de comparacion (palabra clave)
-    if (!estaOrdenadoPorClave(a, na)) {
-        cout << "[!] '" << archivoA << "' no esta ordenado por palabra clave. Ordenando en memoria...\n";
-        ordenarPorClave(a, na);
-    }
-    if (!estaOrdenadoPorClave(b, nb)) {
-        cout << "[!] '" << archivoB << "' no esta ordenado por palabra clave. Ordenando en memoria...\n";
-        ordenarPorClave(b, nb);
-    }
+    ordenarSiHaceFalta(a, na, archivoA);
+    ordenarSiHaceFalta(b, nb, archivoB);
 
-    // Apareo: se toma siempre el menor de los dos frentes; si la palabra clave es igual a la del
-    // ultimo registro del resultado, no se agrega otro: se suman los usos. En empate sale primero A,
-    // asi que se conserva el registro del primer archivo.
-    Comando* res = new Comando[na + nb + 1];
     int nr = 0, combinados = 0;
-    int i = 0, j = 0;
-    while (i < na || j < nb) {
-        const Comando* sig;
-        if (j >= nb || (i < na && compararSinMayusculas(a[i].palabraClave, b[j].palabraClave) <= 0)) sig = &a[i++];
-        else sig = &b[j++];
+    Comando* res = mezclarPorClave(a, na, b, nb, nr, combinados);
+    asegurarCodigosUnicos(res, nr);
+    ordenarPorCodigo(res, nr);   // la busqueda binaria necesita el archivo ordenado por codigo
 
-        if (nr > 0 && compararSinMayusculas(res[nr - 1].palabraClave, sig->palabraClave) == 0) {
-            res[nr - 1].usos += sig->usos;
-            combinados++;
-        }
-        else {
-            res[nr++] = *sig;
-        }
-    }
-
-    // Los codigos tienen que ser unicos (la busqueda binaria los necesita)
-    int maxCodigo = 0;
-    for (int k = 0; k < nr; k++) if (res[k].codigo > maxCodigo) maxCodigo = res[k].codigo;
-    for (int k = 1; k < nr; k++) {
-        for (int m = 0; m < k; m++) {
-            if (res[m].codigo == res[k].codigo) {
-                maxCodigo++;
-                cout << "[!] Codigo " << res[k].codigo << " repetido en '" << res[k].palabraClave
-                     << "': se le asigno el codigo " << maxCodigo << ".\n";
-                res[k].codigo = maxCodigo;
-                break;
-            }
-        }
-    }
-
-    // La busqueda binaria necesita el archivo ordenado por codigo
-    ordenarPorCodigo(res, nr);
-
-    ofstream salida(archivoSalida, ios::binary | ios::trunc);
-    if (!salida) {
+    bool ok = escribirRegistros(archivoSalida, res, nr);
+    delete[] a; delete[] b; delete[] res;
+    if (!ok) {
         cout << "[!] Error al crear " << archivoSalida << "\n";
-        delete[] a; delete[] b; delete[] res;
         return -1;
     }
-    salida.write((char*)res, sizeof(Comando) * nr);
-    salida.close();
 
     cout << "\n[OK] '" << archivoSalida << "' creado con " << nr << " comandos ("
          << archivoA << ": " << na << " | " << archivoB << ": " << nb
@@ -233,13 +319,11 @@ int aparearArchivos(const char* archivoA, const char* archivoB, const char* arch
     if (nr > MAX_COMANDOS) {
         cout << "[!] El resultado supera los " << MAX_COMANDOS << " comandos: al cargarlo solo se leeran los primeros " << MAX_COMANDOS << ".\n";
     }
-
-    delete[] a; delete[] b; delete[] res;
     return nr;
 }
 
 // =============================================================
-// Corte de control y log de sesion
+// Corte de control
 // =============================================================
 
 void listadoPorCategoria(const char* nombreArchivo) {
@@ -277,6 +361,10 @@ void listadoPorCategoria(const char* nombreArchivo) {
     archivo.close();
 }
 
+// =============================================================
+// Archivos de texto
+// =============================================================
+
 void exportarSesionTXT(NodoHistorial* cabeza) {
     ofstream txt("sesion.txt");
     if (!txt) { cout << "Error al crear sesion.txt\n"; return; }
@@ -290,4 +378,61 @@ void exportarSesionTXT(NodoHistorial* cabeza) {
     }
     txt.close();
     cout << "\n[OK] Archivo 'sesion.txt' generado automaticamente.\n";
+}
+
+bool guardarColaEnTXT(const Cola& cola, const char* nombreArchivo) {
+    ofstream txt(nombreArchivo);
+    if (!txt) {
+        cout << "Error al crear " << nombreArchivo << "\n";
+        return false;
+    }
+    recorrerCola(cola, txt);
+    txt.close();
+    cout << "\n[OK] Archivo '" << nombreArchivo << "' generado.\n";
+    return true;
+}
+
+int leerMensajesTXT(const char* nombreArchivo, Cola& cola) {
+    ifstream archivo(nombreArchivo);
+    if (!archivo) return -1;
+
+    int cant = 0;
+    char linea[100];
+    while (true) {
+        archivo.getline(linea, 100);
+        if (archivo.fail() && !archivo.eof()) {   // linea demasiado larga: se recorta
+            archivo.clear();
+            archivo.ignore(1000, '\n');
+        }
+        else if (archivo.fail()) break;           // fin del archivo
+
+        int len = (int)strlen(linea);
+        if (len > 0 && linea[len - 1] == '\r') linea[len - 1] = '\0';
+        if (linea[0] == '\0') continue;
+
+        encolar(cola, linea);
+        cant++;
+    }
+    archivo.close();
+    return cant;
+}
+
+bool guardarSimulacroTXT(Pila& pila, int total, const char* nombreArchivo) {
+    ofstream txt(nombreArchivo);
+    if (!txt) {
+        cout << "Error al crear " << nombreArchivo << "\n";
+        return false;
+    }
+    txt << "=== SIMULACRO DE CONVERSACION USUARIO - IA ===\n";
+    char resp[LARGO_RESPUESTA_PILA], msg[LARGO_RESPUESTA_PILA];
+    int id = total;
+    while (!estaVacia(pila)) {
+        desapilar(pila, resp);
+        if (!desapilar(pila, msg)) msg[0] = '\0';
+        txt << "[ID: " << id << "] User: " << msg << " | IA: " << resp << "\n";
+        id--;
+    }
+    txt.close();
+    cout << "\n[OK] Archivo '" << nombreArchivo << "' generado.\n";
+    return true;
 }

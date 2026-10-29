@@ -16,6 +16,10 @@ const int MAX_COMANDOS = 50;       // Tamano fijo del arreglo de comandos
 const int CANT_CATEGORIAS = 3;     // Filas de la matriz de usos (Sistema, Consultas, Ocio)
 const int FRANJAS_HORARIAS = 4;    // Columnas de la matriz de usos (Manana, Tarde, Noche, Trasnoche)
 
+// Nombres de las filas y columnas de la matriz (los usa el reporte y la carga de comandos)
+const char* const NOMBRES_CATEGORIAS[CANT_CATEGORIAS] = { "Sistema", "Consultas", "Ocio" };
+const char* const NOMBRES_FRANJAS[FRANJAS_HORARIAS] = { "Manana", "Tarde", "Noche", "Trasnoche" };
+
 struct Comando { // Estructura que representa un comando del asistente conversacional
 	int codigo; //Codigo unico del comando
 	char palabraClave[30]; //Palabra clave que activa el comando
@@ -29,22 +33,19 @@ struct Comando { // Estructura que representa un comando del asistente conversac
 void mostrarMenuAdministracion();
 
 
-void consultarPorCodigo(Comando comandos[], int cantComandos);
-
-// --- Carga de comandos ---
 void cargarComando(Comando& c, int cod, const char* clave, const char* cat, const char* resp, const char* desc, int u,int& cant);
 
-// true si ya hay un comando con esa palabra clave (sin distinguir mayusculas)
 bool existePalabraClave(Comando arreglo[], int cant, const char* clave);
 
-// Codigo para un comando nuevo: cant + 100; si ya esta usado, suma 1 hasta encontrar uno libre
 int calcularCodigoNuevo(Comando arreglo[], int cant);
 
 // --- Recorrido / muestra ---
 
 void mostrarComandosEnMemoria(Comando arreglo[], int cant);
 
-void mostrarComandosParaUsuario(Comando arreglo[], int cantComandos); // Vista completa (todos los campos), para el administrador
+void mostrarComandosParaUsuario(Comando arreglo[], int cantComandos); // Vista para el usuario: solo codigo y palabra clave
+
+int buscarComandoExacto(Comando arreglo[], int cant, const char* texto);
 
 void mostrarOpcionesDeSesion(); 
 
@@ -61,7 +62,10 @@ bool estaOrdenadoPorCodigo(Comando arreglo[], int cant);
 int buscarPorCodigoBinaria(Comando arreglo[], int cant, int codigoBuscado);
 
 // --- Busqueda por palabra clave (insensible a mayusculas, admite texto parcial): devuelve posicion o -1 ---
-int buscarComando(Comando arreglo[MAX_COMANDOS], int cantComandos, const char* palabraClave);
+int buscarComando(Comando arreglo[], int cant, const char* palabraClave);
+
+// --- Busca si alguna palabra clave aparece DENTRO de la frase ('decime la HORA' encuentra 'hora'): devuelve posicion o -1 ---
+int procesarFraseUsuario(Comando arreglo[], int cant, const char* fraseInput);
 
 // --- Mostrar el dato de un comando a partir de su posicion (error si la posicion no es valida) ---
 void mostrarRespuesta(Comando arreglo[], int cantComandos, int pos);
@@ -71,8 +75,9 @@ void mostrarDescripcion(Comando arreglo[MAX_COMANDOS], int cantComandos, int pos
 // --- Matriz de usos por categoria / franja horaria ---
 int filaDeCategoria(const char* categoria);   // Categoria -> fila de la matriz
 
-int franjaDeHora(int hora);                   // Hora (0 a 23) -> columna de la matriz
+int franjaDeHora(int hora);                   
 
-void procesarMatrizUsos(int matriz[CANT_CATEGORIAS][FRANJAS_HORARIAS]);
+void maximoMatrizUsos(int matriz[CANT_CATEGORIAS][FRANJAS_HORARIAS]);
 
+void totalesMatrizUsos(int matriz[CANT_CATEGORIAS][FRANJAS_HORARIAS]);
 #endif
