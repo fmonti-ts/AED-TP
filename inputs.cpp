@@ -1,6 +1,8 @@
 #include <iostream>
 #include <cstring>
 #include <cctype>
+#include <chrono>
+#include <thread>
 #include "inputs.h"
 #include "comando.h"
 using namespace std;
@@ -9,10 +11,10 @@ using namespace std;
 void aMinuscula(char* destino, const char* origen) {
     int i = 0;
     while (origen[i] != '\0') {
-        destino[i] = tolower(origen[i]);
+        destino[i] = (char)tolower((unsigned char)origen[i]);
         i++;
     }
-    destino[i] = '\0';
+    destino[i] = '\0';  
 }
 
 int leerEntero() {
@@ -28,12 +30,18 @@ int leerEntero() {
 }
 
 // Lee una linea completa (con espacios) de hasta tam-1 caracteres.
-void leerLinea(char* destino, int tam) {
-    cin.getline(destino, tam);
-    if (cin.fail() && !cin.eof()) {   // la linea era mas larga que el buffer
-        cin.clear();
-        cin.ignore(1000, '\n');
-    }
+// Con permitirVacio = false repite hasta que se escriba algo (o se cierre la entrada).
+void leerLinea(char* destino, int tam, bool permitirVacio) {
+    do {
+        cin.getline(destino, tam);
+        if (cin.fail() && !cin.eof()) {   // la linea era mas larga que el buffer
+            cin.clear();
+            cin.ignore(1000, '\n');
+        }
+        if (!permitirVacio && destino[0] == '\0' && !cin.eof()) {
+            cout << "No puede quedar vacio. Intente de nuevo: ";
+        }
+    } while (!permitirVacio && destino[0] == '\0' && !cin.eof());
 }
 
 int pedirHora() {
@@ -46,3 +54,6 @@ int pedirHora() {
     return hora;
 }
 
+void pausar(int milisegundos) {
+    this_thread::sleep_for(chrono::milliseconds(milisegundos));
+}

@@ -26,7 +26,7 @@ struct Cola {
 void crearCola(Cola& c);
 
 // Agrega el texto al final de la cola (truncado a 49 caracteres).
-void colar(Cola& c, const char* texto);
+void encolar(Cola& c, const char* texto);
 
 // Saca el primero y lo copia en destino (min. LARGO_TEXTO_COLA chars). false si estaba vacia.
 bool desencolar(Cola& c, char* destino);

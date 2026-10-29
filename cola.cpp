@@ -14,7 +14,7 @@ bool estaVacio(const Cola& c) {
     return c.frente == NULL;
 }
 
-void colar(Cola& c, const char* texto) {
+void encolar(Cola& c, const char* texto) {
     NodoCola* nuevo = new NodoCola;
     strncpy(nuevo->dato, texto, LARGO_TEXTO_COLA - 1);
     nuevo->dato[LARGO_TEXTO_COLA - 1] = '\0';

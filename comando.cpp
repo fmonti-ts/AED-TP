@@ -4,8 +4,7 @@
 #include <cctype>
 #include "comando.h"
 #include "inputs.h"
-#include <chrono>   // Necesario para las unidades de tiempo (seconds, milliseconds)
-#include <thread>                           
+#include <iomanip>   // setw / left / right para mostrar la matriz como tabla
 
 using namespace std;
 
@@ -42,11 +41,13 @@ void mostrarOpcionesDeSesion() {
 }
 
 
-
 // =============================================================
 // Carga de comandos
 // =============================================================
 
+
+
+//simp  
 void cargarComando(Comando& c, int cod, const char* clave, const char* cat, const char* resp, const char* desc, int u, int& cant) {
     c.codigo = cod;
     strcpy(c.palabraClave, clave);
@@ -58,13 +59,7 @@ void cargarComando(Comando& c, int cod, const char* clave, const char* cat, cons
 }
 
 bool existePalabraClave(Comando arreglo[], int cant, const char* clave) {
-    char buscada[30], actual[30];
-    aMinuscula(buscada, clave);
-    for (int i = 0; i < cant; i++) {
-        aMinuscula(actual, arreglo[i].palabraClave);
-        if (strcmp(buscada, actual) == 0) return true;
-    }
-    return false;
+    return buscarComandoExacto(arreglo, cant, clave) != -1;
 }
 
 int calcularCodigoNuevo(Comando arreglo[], int cant) {
@@ -101,7 +96,7 @@ void mostrarComandosParaUsuario(Comando arreglo[], int cantComandos) {
     }
     if (!estaOrdenadoPorCodigo(arreglo, cantComandos)) {
         cout << "\n[!] Los comandos no estan ordenados por codigo. ordenando...\n";
-        this_thread::sleep_for(std::chrono::milliseconds(500));
+        pausar(500);
         ordenarPorCodigo(arreglo, cantComandos);
         cout << "listo! \n ";
     }
@@ -111,6 +106,7 @@ void mostrarComandosParaUsuario(Comando arreglo[], int cantComandos) {
     }
     cout << "\n converse con la IA y elija alguno de estos comandos\n";
 }
+
 
 // =============================================================
 // Ordenamiento (dos criterios)
@@ -132,7 +128,6 @@ void ordenarPorCodigo(Comando arreglo[], int cant) {
         }
         i++;
     }
-    cout << "\n[OK] Arreglo ordenado por CODIGO.\n";
 }
 
 void ordenarPorPalabra(Comando arreglo[], int cant) {
@@ -149,7 +144,6 @@ void ordenarPorPalabra(Comando arreglo[], int cant) {
             arreglo[minIdx] = aux;
         }
     }
-    cout << "\n[OK] Arreglo ordenado por PALABRA CLAVE.\n";
 }
 
 void ordenarPorCategoria(Comando arreglo[], int cant) {
@@ -168,7 +162,6 @@ void ordenarPorCategoria(Comando arreglo[], int cant) {
             arreglo[minIdx] = aux;
         }
     }
-    cout << "\n[OK] Arreglo ordenado por CATEGORIA.\n";
 }
 
 bool estaOrdenadoPorCodigo(Comando arreglo[], int cant) {
@@ -182,6 +175,32 @@ bool estaOrdenadoPorCodigo(Comando arreglo[], int cant) {
 // Busquedas
 // =============================================================
 
+int buscarComando(Comando arreglo[], int cant, const char* palabraClave) {
+    if (palabraClave[0] == '\0') return -2;  
+    char buscada[100], claveMin[30];
+    aMinuscula(buscada, palabraClave);
+    for (int i = 0; i < cant; i++) {
+        aMinuscula(claveMin, arreglo[i].palabraClave);
+        if (strstr(claveMin, buscada) != NULL) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int buscarComandoExacto(Comando arreglo[], int cant, const char* palabraClave) {
+    if (palabraClave[0] == '\0') return -2;  
+    char textoMin[100], claveMin[30];
+    aMinuscula(textoMin, palabraClave);
+    for (int i = 0; i < cant; i++) {
+        aMinuscula(claveMin, arreglo[i].palabraClave);
+        if (strcmp(textoMin, claveMin) == 0) {
+            return i;
+        };
+    }
+    return -1;
+}
+
 int buscarPorCodigoBinaria(Comando arreglo[], int cant, int codigoBuscado) {
     int inicio = 0, fin = cant - 1;
     while (inicio <= fin) {
@@ -193,13 +212,14 @@ int buscarPorCodigoBinaria(Comando arreglo[], int cant, int codigoBuscado) {
     return -1;
 }
 
-int buscarPorPalabra(Comando arreglo[], int cantComandos, const char* palabraClave) {
-    if (palabraClave[0] == '\0') return -1;   // texto vacio: coincidiria con todo
+// Busca si alguna palabra clave aparece DENTRO de la frase: "decime la HORA" encuentra "hora".
+int procesarFraseUsuario(Comando arreglo[], int cant, const char* fraseInput) {
+    char fraseMin[100], claveMin[30];
+    aMinuscula(fraseMin, fraseInput);
 
-    char buscada[100], claveMin[30];
-
-    for (int i = 0; i < cantComandos; i++) {
-        if (strstr(claveMin, buscada) != NULL) {
+    for (int i = 0; i < cant; i++) {
+        aMinuscula(claveMin, arreglo[i].palabraClave);
+        if (strstr(fraseMin, claveMin) != NULL) {
             return i;
         }
     }
@@ -211,7 +231,6 @@ int buscarPorPalabra(Comando arreglo[], int cantComandos, const char* palabraCla
 // Mostrar respuesta / descripcion de un comando
 // =============================================================
 
-// Busca si alguna palabra clave aparece DENTRO de la frase: "decime la HORA" encuentra "hora".
 void mostrarRespuesta(Comando arreglo[], int cantComandos, int pos) {
     if (pos < 0 || pos >= cantComandos) {
         cout << "[ERROR] Lo siento, no entendi el comando: no hay respuesta para mostrar.\n";
@@ -245,20 +264,45 @@ int franjaDeHora(int hora) {
     return 3;                                // Trasnoche (0 a 5 hs)
 }
 
-void procesarMatrizUsos(int matriz[CANT_CATEGORIAS][FRANJAS_HORARIAS]) {
-    cout << "\n=== REPORTES DE LA MATRIZ DE USOS ===\n";
+// Anchos de columna de la tabla
+int ANCHO_ETIQUETA = 12;
+int ANCHO_CELDA = 11;
+int ANCHO_TOTAL = 7;
+
+void separadorTabla() {
+    int ancho = ANCHO_ETIQUETA + ANCHO_CELDA * FRANJAS_HORARIAS + 2 + ANCHO_TOTAL;
+    cout << setfill('-') << setw(ancho) << "" << setfill(' ') << "\n";
+}
+
+// Muestra la matriz como tabla (categorias en filas, franjas en columnas) con totales por fila y por columna
+void totalesMatrizUsos(int matriz[CANT_CATEGORIAS][FRANJAS_HORARIAS]) {
+    int totalColumna[FRANJAS_HORARIAS] = { 0 };
+    int totalGeneral = 0;
+
+    cout << setw(ANCHO_ETIQUETA) << "";
+    for (int j = 0; j < FRANJAS_HORARIAS; j++) cout << setw(ANCHO_CELDA) << NOMBRES_FRANJAS[j];
+    cout << " |" << setw(ANCHO_TOTAL) << "Total" << "\n";
+    separadorTabla();
+
     for (int i = 0; i < CANT_CATEGORIAS; i++) {
         int totalFila = 0;
-        for (int j = 0; j < FRANJAS_HORARIAS; j++) totalFila += matriz[i][j];
-        cout << "Total usos Categoria " << i << ": " << totalFila << "\n";
+        cout << left << setw(ANCHO_ETIQUETA) << NOMBRES_CATEGORIAS[i] << right;
+        for (int j = 0; j < FRANJAS_HORARIAS; j++) {
+            cout << setw(ANCHO_CELDA) << matriz[i][j];
+            totalFila += matriz[i][j];
+            totalColumna[j] += matriz[i][j];
+        }
+        cout << " |" << setw(ANCHO_TOTAL) << totalFila << "\n";
+        totalGeneral += totalFila;
     }
 
-    for (int j = 0; j < FRANJAS_HORARIAS; j++) {
-        int totalCol = 0;
-        for (int i = 0; i < CANT_CATEGORIAS; i++) totalCol += matriz[i][j];
-        cout << "Total usos Franja Horaria " << j << ": " << totalCol << "\n";
-    }
+    separadorTabla();
+    cout << left << setw(ANCHO_ETIQUETA) << "Total" << right;
+    for (int j = 0; j < FRANJAS_HORARIAS; j++) cout << setw(ANCHO_CELDA) << totalColumna[j];
+    cout << " |" << setw(ANCHO_TOTAL) << totalGeneral << "\n";
+}
 
+void maximoMatrizUsos(int matriz[CANT_CATEGORIAS][FRANJAS_HORARIAS]) {
     int maxVal = matriz[0][0], maxFila = 0, maxCol = 0;
     for (int i = 0; i < CANT_CATEGORIAS; i++) {
         for (int j = 0; j < FRANJAS_HORARIAS; j++) {
@@ -269,5 +313,6 @@ void procesarMatrizUsos(int matriz[CANT_CATEGORIAS][FRANJAS_HORARIAS]) {
             }
         }
     }
-    cout << "PICO DE USO MAXIMO: " << maxVal << " (Categoria: " << maxFila << ", Franja: " << maxCol << ")\n";
+    cout << "\nPICO DE USO MAXIMO: " << maxVal << " usos -> " << NOMBRES_CATEGORIAS[maxFila]
+         << " / " << NOMBRES_FRANJAS[maxCol] << " (fila " << maxFila << ", columna " << maxCol << ")\n";
 }
