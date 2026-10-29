@@ -28,7 +28,7 @@ void esperar(){
 
 void generarDatosDePrueba(Comando arreglo[], int& cant) {
     cant = 0;
-    cargarComando(arreglo[0], 103, "hora","Sistema","La hora actual es 16:00 hs.","Informa la hora actual.",12,cant);
+    cargarComando(arreglo[0], 103, "hora","Sistema","son entre las 16 y las 18 hs.","Informa la hora actual.",12,cant);
     cargarComando(arreglo[1], 100, "clima","Consultas","El clima esta despejado y templado.","Informa el estado del clima.",8,cant);
     cargarComando(arreglo[2], 102, "chiste","Ocio","Que hace una abeja en el gimnasio? Zumba.","Cuenta un chiste.",25,cant);
     cargarComando(arreglo[3], 101, "nombre","Consultas","Soy AsistenteVirtual v1.0.","Dice como se llama el asistente.",15,cant);
