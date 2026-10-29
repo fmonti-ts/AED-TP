@@ -1,3 +1,62 @@
+# README DEMO
+
+## ¿Qué hace el sistema?
+
+En conjunto, se trata de una aplicación estructurada para la resolución de un problema algorítmico mediante la manipulación eficiente de memoria dinámica y archivos en C++.
+
+Nuestro asistente conversacional simulado, con respuestas predeterminadas, muestra opciones sobre qué puede hacer el usuario y, al recibir la respuesta del humano, despliega nuevos menús o funciones para que el usuario logre lo que quiere hacer.
+
+Esto nos permite, además de chatear con la IA, entrar al menú de administración, donde podemos:
+
+- Agregar nuevos comandos para la IA
+- Alterar el historial
+- Simular conversaciones
+- Usar otras funciones de administración de sesión
+
+---
+
+## ¿Cómo se compila?
+
+Los comandos de la IA se guardan en un archivo. El usuario elige si hablar con la IA o administrar datos.
+
+| Modo | Datos que utiliza |
+|------|-------------------|
+| **Hablar con la IA** | `comandos`, `cantComandos`, `matrizUsos`, `historialSesion`, contador del id del historial |
+| **Menú de administración** | `comandos`, `cantComandos`, `matrizUsos`, `historialSesion`, `archivoActual` |
+
+---
+
+## ¿Qué hace cada módulo?
+
+### Archivos
+- Creación y lectura de archivos binarios `.dat`
+- Lectura por secuencia y acceso aleatorio
+- Apareo y corte de control
+- Guardado de sesión
+
+### Pila
+- Sistema de respuestas de simulación de IA
+- Funciones básicas de estructura LIFO
+
+### Cola
+- Sistema de simulación de comandos de usuario
+- Funciones básicas de estructura FIFO
+
+---
+
+## Pregunta de diseño
+
+### Matriz
+
+| Estructura | Rol en el sistema |
+|------------|-------------------|
+| **Pila** | Manera natural en que la IA responde las preguntas del usuario. Lee los comandos como una cola y los va "apilando" en el `.txt`. |
+| **Cola** | Serie de comandos de usuario que se guardan uno atrás del otro, para resolverse en orden de llegada. |
+| **Lista** | Historial editable de conversación con la IA, guardado en memoria. Cada nodo apunta al siguiente. |
+| **Array** | Lista de **todos** los comandos que entiende la IA, con sus respuestas. |
+| **Matriz** | Sistema que ordena qué tipo de comando se usa más en cada franja horaria. |
+
+
 ## 1. Ordenamientos
 
 | Función | Archivo | Mejor | Promedio | Peor | Observaciones |
